@@ -1,3 +1,4 @@
 # What a run writes, and nothing else (yoke-project/yoke#35).
 .results/
+# What building a reference writes.
 /plugins/go/clock/clock

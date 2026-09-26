@@ -1,0 +1,19 @@
+manifest: 1
+id: com.yoke.reference.clock
+protocol: 1
+commands:
+    - id: clock.mark
+queries:
+    - id: clock.now
+occurrences:
+    - id: clock.marked
+capabilities:
+    - name: command.mark.accept
+      governs:
+        command: clock.mark
+    - name: query.now.answer
+      governs:
+        query: clock.now
+    - name: event.marked.report
+      governs:
+        occurrence: clock.marked
