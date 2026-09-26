@@ -15,6 +15,10 @@ for each in checks.txt started finished; do
   [[ -f "$results/$each" ]] || { echo "record: the run left no $each in $results" >&2; exit 1; }
 done
 
+# A run of a module's tests leaves a Go runner's own output beside the checks' lines.
+go_results=()
+[[ -s "$results/go.json" ]] && go_results=(--results "$results/go.json")
+
 # The architecture as the environment's dimension names it.
 case "$(uname -m)" in
   x86_64) architecture=amd64 ;;
@@ -34,4 +38,5 @@ go run "$module/cmd/yoke-verify@main" record \
   --finished "$(tr -d '[:space:]' < "$results/finished")" \
   --ran "yoke-verify=$version@${version##*-}" \
   --results "$results/checks.txt" \
+  "${go_results[@]}" \
   "$root"
