@@ -1,9 +1,13 @@
 # The six verbs every repository defines.
 # A verb with nothing to do says so in one line, so a fan-out can tell a gap from a statement.
 
-# Build this repository's codebase.
+# Build this repository's codebase: every reference in Go is a module of its own, so a reader can copy
+# one out whole.
 build:
-    @echo "build: nothing to build in yoke-reference yet"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for module in $(find . -name go.mod -not -path './.git/*' | sort); do go -C "$(dirname "$module")" build -o /dev/null ./...; done
+    echo "build: every module builds"
 
 # Run this repository's own checks, with no sibling present.
 test:
@@ -14,6 +18,14 @@ test:
     date -u +%Y-%m-%dT%H:%M:%SZ > .results/started
     status=0
     bash checks/run.sh | tee .results/checks.txt || status=1
+    : > .results/go.json
+    for module in $(find . -name go.mod -not -path './.git/*' | sort); do
+      go test -C "$(dirname "$module")" -json ./... >> .results/go.json || status=1
+      go test -C "$(dirname "$module")" ./... || status=1
+    done
+    # The verification tool comes from the module proxy, never from a sibling.
+    go run github.com/yoke-project/yoke/cmd/yoke-verify@main descriptions --repository yoke-reference . > /dev/null || status=1
+    go run github.com/yoke-project/yoke/cmd/yoke-verify@main markers --repository yoke-reference . > /dev/null || status=1
     date -u +%Y-%m-%dT%H:%M:%SZ > .results/finished
     exit "$status"
 
@@ -23,7 +35,8 @@ lint:
     set -euo pipefail
     shopt -s nullglob
     bash -n checks/run.sh checks/*/*.sh ci/*.sh
-    echo "lint: every shell script parses"
+    for module in $(find . -name go.mod -not -path './.git/*' | sort); do go -C "$(dirname "$module")" vet ./...; done
+    echo "lint: every shell script parses and go vet is clean in every module"
 
 # Fail, naming each file, when the tree is not formatted.
 fmt:
