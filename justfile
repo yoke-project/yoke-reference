@@ -23,9 +23,13 @@ test:
       go test -C "$(dirname "$module")" -json ./... >> .results/go.json || status=1
       go test -C "$(dirname "$module")" ./... || status=1
     done
-    # The verification tool comes from the module proxy, never from a sibling.
-    go run github.com/yoke-project/yoke/cmd/yoke-verify@main descriptions --repository yoke-reference . > /dev/null || status=1
-    go run github.com/yoke-project/yoke/cmd/yoke-verify@main markers --repository yoke-reference . > /dev/null || status=1
+    if command -v yoke-verify > /dev/null; then
+        yoke-verify descriptions --repository yoke-reference . > /dev/null || status=1
+        yoke-verify markers --repository yoke-reference . > /dev/null || status=1
+    else
+        echo "test: yoke-verify is not on PATH; \`just develop\` puts it there"
+        status=1
+    fi
     date -u +%Y-%m-%dT%H:%M:%SZ > .results/finished
     exit "$status"
 
@@ -46,25 +50,26 @@ fmt:
     if [[ -n "$files" ]]; then printf 'fmt: not formatted:\n%s\n' "$files"; exit 1; fi
     echo "fmt: every Go file is formatted"
 
-# Verify the toolchain against the floor the workspace's fan-out passes.
-develop floor="":
+# Verify the toolchain against the floor the workspace's fan-out passes, and put the verification
+# tool on PATH at the version the workspace names — run alone, the newest published.
+develop floor="" verify="":
     #!/usr/bin/env bash
     set -euo pipefail
     found="$(just --version | awk '{print $2}')"
     if [[ -z "{{floor}}" ]]; then
         echo "develop: no floor given, so none verified — the workspace passes it; found just $found"
-        exit 0
-    fi
-    if ! [[ "{{floor}}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+    elif ! [[ "{{floor}}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
         echo "develop: '{{floor}}' is not a version; pass it as \`just develop 1.58.0\`"
         exit 1
+    else
+        lowest="$(printf '%s\n%s\n' "{{floor}}" "$found" | sort -V | head -n 1)"
+        if [[ "$lowest" != "{{floor}}" ]]; then
+            echo "develop: just {{floor}} or newer is needed; found just $found"
+            exit 1
+        fi
+        echo "develop: just $found meets the floor {{floor}}"
     fi
-    lowest="$(printf '%s\n%s\n' "{{floor}}" "$found" | sort -V | head -n 1)"
-    if [[ "$lowest" != "{{floor}}" ]]; then
-        echo "develop: just {{floor}} or newer is needed; found just $found"
-        exit 1
-    fi
-    echo "develop: just $found meets the floor {{floor}}"
+    bash ci/yoke-verify.sh "{{verify}}"
 
 # Publish into this repository's ecosystem, one manifest line per publication.
 release:
