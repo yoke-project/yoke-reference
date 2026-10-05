@@ -27,3 +27,27 @@ check_every_module_builds_from_published_modules() {
   chmod -R u+w "$cache" && rm -rf "$cache"
   [[ -z "$failed" ]] || { echo "${failed# }"; return 1; }
 }
+
+# std: yoke-reference:built-from-published.02
+check_every_node_package_installs_from_the_public_registry() {
+  local packages package dir failed=""
+  mapfile -t packages < <(find "$published_root" -name package.json -not -path '*/node_modules/*' -not -path '*/.git/*' | sort)
+  for package in "${packages[@]}"; do
+    dir="$(dirname "$package")"
+    if [[ ! -f "$dir/package-lock.json" ]]; then
+      failed+=" ${dir#"$published_root"/} has no lockfile;"
+      continue
+    fi
+    # Every locked requirement, resolved from the public registry with a digest; the root entry is the
+    # package itself.
+    if ! out="$(node -e '
+      const lock = require(process.argv[1]);
+      const wrong = Object.entries(lock.packages ?? {}).filter(([at]) => at !== "")
+        .filter(([, p]) => p.link || !String(p.resolved ?? "").startsWith("https://registry.npmjs.org/") || !p.integrity)
+        .map(([at]) => at);
+      if (wrong.length) { console.log(wrong.join(", ")); process.exit(1); }' "$dir/package-lock.json" 2>&1)"; then
+      failed+=" ${dir#"$published_root"/} locks what the public registry does not serve: $out;"
+    fi
+  done
+  [[ -z "$failed" ]] || { echo "${failed# }"; return 1; }
+}
