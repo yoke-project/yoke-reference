@@ -21,4 +21,4 @@ node server.mjs --channel unix:/run/yoke/interfaces/remote.sock
 | `server.mjs` | the front: the pages, and `/v1/` forwarded |
 | `public/attachment.js` | the contract: one attachment, its picture, one method per operation |
 | `public/app.js` | the pages, drawn from the attachment |
-| `test/` | the tests, run by `node --test test/` against a channel written in the test |
+| `test/` | the tests, run by `node --test 'test/*.test.mjs'` against a channel written in the test |

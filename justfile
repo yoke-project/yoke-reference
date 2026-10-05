@@ -31,7 +31,7 @@ test:
     here="$PWD"
     for package in $(find . -name package.json -not -path '*/node_modules/*' -not -path './.git/*' | sort); do
       (cd "$(dirname "$package")" && node --test --test-reporter=spec --test-reporter-destination=stdout \
-        --test-reporter="$here/ci/node-results.mjs" --test-reporter-destination=node.json.part test/) || status=1
+        --test-reporter="$here/ci/node-results.mjs" --test-reporter-destination=node.json.part 'test/*.test.mjs') || status=1
       cat "$(dirname "$package")/node.json.part" >> .results/node.json && rm -f "$(dirname "$package")/node.json.part"
     done
     if command -v yoke-verify > /dev/null; then
