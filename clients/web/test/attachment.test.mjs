@@ -146,16 +146,28 @@ test(the_picture_follows_the_standing_subscription_and_an_overflow_replaces_it);
 // std: yoke-reference:the-web-client.04
 async function the_standing_subscription_is_confirmed_at_the_sequence_last_applied() {
   const channel = new Channel();
-  channel.answer("read", { json: { read: { records: [] } } });
+  channel.answer("read", (body) =>
+    body.read.identity === "gone"
+      ? { status: 404, json: { code: "subject.unknown", message: "nothing bears that identity" } }
+      : { json: { read: { records: [] } } },
+  );
   const clock = new Clock();
   const attachment = await attached(channel, clock);
+  const socket = channel.socket("/v1/events");
+  const interval = async () => {
+    clock.tick();
+    await settled();
+  };
 
-  clock.tick();
+  await interval();
+  socket.deliver({ call: "standing", event: { seq: "7", type: "unit.state.changed", subject: { kind: "unit", identity: "station" } } });
   await settled();
-  channel.socket("/v1/events").deliver({ call: "standing", event: { seq: "7", type: "unit.state.changed", subject: { kind: "unit", identity: "station" } } });
+  await interval();
+  socket.deliver({ call: "standing", event: { seq: "9", type: "unit.state.changed", subject: { kind: "unit", identity: "gone" } } });
   await settled();
-  clock.tick();
-  await settled();
+  await interval();
+  socket.deliver({ call: "standing", answer: { subscribe: { overflow: { at: "12", records: [] } } } });
+  await interval();
   attachment.close();
   clock.tick();
   await settled();
@@ -165,6 +177,8 @@ async function the_standing_subscription_is_confirmed_at_the_sequence_last_appli
     [
       { version: 1, confirm: { subscription: "standing", sequence: "3" } },
       { version: 1, confirm: { subscription: "standing", sequence: "7" } },
+      { version: 1, confirm: { subscription: "standing", sequence: "7" } },
+      { version: 1, confirm: { subscription: "standing", sequence: "12" } },
     ],
   );
 }
