@@ -17,6 +17,8 @@ done
 # A run of a module's tests leaves a Go runner's own output beside the checks' lines.
 go_results=()
 [[ -s "$results/go.json" ]] && go_results=(--results "$results/go.json")
+# And a run of a package's tests leaves the same form, written by ci/node-results.mjs.
+[[ -s "$results/node.json" ]] && go_results+=(--results "$results/node.json")
 
 # The architecture as the environment's dimension names it.
 case "$(uname -m)" in
