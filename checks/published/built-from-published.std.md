@@ -17,3 +17,16 @@
 | **Precondition** | this repository's tree |
 | **Action** | find every Go module in it, and build each with an empty module cache, through the public module proxy and verified against the public checksum database, with no module exempted from either and no workspace |
 | **Expected** | there is at least one module; no module replaces a requirement or vendors one, the tree holds no workspace file, and every module builds |
+
+## yoke-reference:built-from-published.02 — every Node.js package installs from the public registry alone
+
+| Field | Value |
+| --- | --- |
+| **Cites** | prj_structure/40 C1 · prj_structure/40 C2 · arch/90-sdks/07 §They hold no privileged route, and that is what they are for |
+| **Level** | L1 |
+| **Method** | check |
+| **Not applicable in** | — |
+| **Label** | blocking |
+| **Precondition** | this repository's tree |
+| **Action** | find every Node.js package in it, and read each package's manifest and lockfile |
+| **Expected** | every package has a lockfile; every requirement it locks is resolved from `https://registry.npmjs.org/` with an integrity digest, and none is a path, a link, a repository or a tarball elsewhere |
