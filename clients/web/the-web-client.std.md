@@ -54,8 +54,8 @@
 | **Not applicable in** | — |
 | **Label** | blocking |
 | **Precondition** | an attachment on a channel written in the test, opened at sequence 3, confirming on an interval the test drives |
-| **Action** | let one interval pass; apply an event at sequence 7; let another pass; close the attachment and let a third pass |
-| **Expected** | the standing subscription is confirmed at 3, then at 7, and nothing is confirmed once the attachment is closed |
+| **Action** | let one interval pass; apply an event at sequence 7; let another pass; receive an event at sequence 9 whose subject cannot be read, and let another pass; receive an overflow at sequence 12, and let another pass; close the attachment and let a last one pass |
+| **Expected** | the standing subscription is confirmed at 3, then at 7, at 7 again while the subject of 9 is unread, then at 12; nothing is confirmed once the attachment is closed |
 
 ## yoke-reference:the-web-client.05 — a stream's data arrives on the path it was answered with, header and payload unchanged
 

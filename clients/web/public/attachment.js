@@ -179,6 +179,7 @@ export class Attachment {
       if (overflow) {
         this.picture = new Picture(overflow);
         this.applied = this.picture.at;
+        this.behind = false;
         this.tell({ kind: "picture", picture: this.picture, overflow: true });
       }
       return;
@@ -191,18 +192,25 @@ export class Attachment {
 
   // An event changes what the channel observes about its subject: that subject is read again, and its
   // record replaces the one held. The detail is typed per event type and is not decoded here.
+  // What is confirmed is what the picture shows: the sequence moves once the subject was read again,
+  // never on arrival alone.
   async apply(event) {
-    this.applied = Math.max(this.applied, number(event.seq));
     this.tell({ kind: "event", event });
     const { kind, identity } = event.subject ?? {};
-    if (!["instance", "unit", "channel"].includes(kind)) return;
-    try {
-      const records = await this.read(kind, kind === "unit" ? identity : undefined);
-      for (const record of records) this.picture.put(record);
-      this.tell({ kind: "picture", picture: this.picture });
-    } catch (error) {
-      this.tell({ kind: "unread", subject: event.subject, error });
+    if (["instance", "unit", "channel"].includes(kind)) {
+      try {
+        const records = await this.read(kind, kind === "unit" ? identity : undefined);
+        for (const record of records) this.picture.put(record);
+        this.tell({ kind: "picture", picture: this.picture });
+      } catch (error) {
+        // A subject that could not be read leaves the picture behind, and it stays behind — unconfirmed
+        // past this point — until an overflow replaces it whole.
+        this.behind = true;
+        this.tell({ kind: "unread", subject: event.subject, error });
+        return;
+      }
     }
+    if (!this.behind) this.applied = Math.max(this.applied, number(event.seq));
   }
 
   confirmCurrent() {
