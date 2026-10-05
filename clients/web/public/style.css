@@ -1,0 +1,174 @@
+:root {
+  --bg: #f7f7f5;
+  --panel: #ffffff;
+  --ink: #1d1d1b;
+  --muted: #6b6b66;
+  --line: #deded8;
+  --accent: #2f5d8a;
+  --warn: #9a5b00;
+  --bad: #a32020;
+  --good: #2e7a3c;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161615;
+    --panel: #1f1f1d;
+    --ink: #ececea;
+    --muted: #9a9a94;
+    --line: #34342f;
+    --accent: #7fb0e0;
+    --warn: #e0a54a;
+    --bad: #ef7b7b;
+    --good: #7cc98a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: 1rem;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.45 system-ui, sans-serif;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+h2 {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+#instance,
+.muted {
+  color: var(--muted);
+}
+
+#channel {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--good);
+  background: var(--panel);
+  padding: 0.6rem 0.8rem;
+  margin: 0.8rem 0;
+}
+
+#channel.suspended {
+  border-left-color: var(--warn);
+}
+
+#channel.closed {
+  border-left-color: var(--bad);
+}
+
+#units {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 0.8rem;
+}
+
+.unit {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 0.8rem;
+  min-width: 0;
+}
+
+.unit h2 {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.state {
+  font-weight: normal;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.state.running {
+  color: var(--good);
+}
+
+.row {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.35rem 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.row input {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+input,
+button {
+  font: inherit;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+}
+
+button {
+  cursor: pointer;
+  color: var(--accent);
+}
+
+button:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+output {
+  display: block;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
+output.refused {
+  color: var(--bad);
+}
+
+#login {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+#login[hidden] {
+  display: none;
+}
+
+#log {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  max-height: 16rem;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.5rem 0.5rem 3rem;
+  margin: 0;
+}

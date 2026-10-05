@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Yoke reference client</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Yoke</h1>
+      <p id="instance">attaching…</p>
+    </header>
+    <section id="channel" aria-live="polite"></section>
+    <form id="login" hidden>
+      <label>Account <input name="account" autocomplete="username" required /></label>
+      <label>Secret <input name="secret" type="password" autocomplete="current-password" required /></label>
+      <button>Authenticate</button>
+    </form>
+    <main id="units"></main>
+    <section id="events">
+      <h2>Events</h2>
+      <ol id="log" reversed></ol>
+    </section>
+  </body>
+</html>
