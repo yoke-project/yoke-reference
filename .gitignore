@@ -2,5 +2,7 @@
 .results/
 # What building a reference writes.
 /plugins/go/clock/clock
+target/
+__pycache__/
 # What installing a package in Node.js writes.
 node_modules/
