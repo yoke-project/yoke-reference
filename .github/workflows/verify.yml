@@ -21,15 +21,31 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
+      - uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: '1.94.1'
+          components: rustfmt
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
       - run: just develop
       - run: just build
       - run: just lint
       - run: just fmt
       - run: just test
-      - run: ci/record.sh > record.json
+      - run: ci/record.sh L1 > record-L1.json
         if: always()
+      - run: ci/record.sh L3 > record-L3.json
+        if: always()
+        env:
+          PREDECESSOR: record-L1.json
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: record-L1
-          path: record.json
+          path: record-L1.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: record-L3
+          path: record-L3.json

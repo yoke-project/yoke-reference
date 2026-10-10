@@ -1,0 +1,13 @@
+# A reference Plugin in Rust: built from the published crate alone, and copied whole as the start of a
+# Plugin of your own.
+[package]
+name = "clock"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.88"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+yoke-sdk = "=0.4.0"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal"] }

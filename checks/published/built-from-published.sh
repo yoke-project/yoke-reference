@@ -51,3 +51,48 @@ check_every_node_package_installs_from_the_public_registry() {
   done
   [[ -z "$failed" ]] || { echo "${failed# }"; return 1; }
 }
+
+# std: yoke-reference:built-from-published.03
+check_every_cargo_package_locks_crates_from_crates_io() {
+  local manifests manifest dir failed="" wrong
+  mapfile -t manifests < <(find "$published_root" -name Cargo.toml -not -path '*/target/*' -not -path '*/.git/*' | sort)
+  for manifest in "${manifests[@]}"; do
+    dir="$(dirname "$manifest")"
+    if [[ ! -f "$dir/Cargo.lock" ]]; then
+      failed+=" ${dir#"$published_root"/} has no lockfile;"
+      continue
+    fi
+    grep -qE '(^|[[:space:],{])(path|git)[[:space:]]*=' "$manifest" && failed+=" ${dir#"$published_root"/} requires a path or a repository;"
+    grep -qE '^\[patch' "$manifest" && failed+=" ${dir#"$published_root"/} patches a requirement;"
+    # Every locked package but the root carries crates.io's index as its source, and a checksum.
+    wrong="$(awk '
+      /^\[\[package\]\]/ { if (name != "" && name != root && !(src ~ /^"registry\+https:\/\/github\.com\/rust-lang\/crates\.io-index"$/ && sum)) print name; name = ""; src = ""; sum = 0; next }
+      /^name = / { name = $3 } /^source = / { src = $3 } /^checksum = / { sum = 1 }
+      END { if (name != "" && name != root && !(src ~ /^"registry\+https:\/\/github\.com\/rust-lang\/crates\.io-index"$/ && sum)) print name }
+    ' root="\"$(awk -F'"' '/^name = /{print $2; exit}' "$manifest")\"" "$dir/Cargo.lock" | tr '\n' ' ')"
+    [[ -z "$wrong" ]] || failed+=" ${dir#"$published_root"/} locks what crates.io does not serve: ${wrong% };"
+  done
+  [[ -z "$failed" ]] || { echo "${failed# }"; return 1; }
+}
+
+# std: yoke-reference:built-from-published.04
+check_every_python_program_installs_from_the_public_index() {
+  local files file dir venv failed="" unpinned
+  mapfile -t files < <(find "$published_root" -name requirements.txt -not -path '*/.git/*' | sort)
+  for file in "${files[@]}"; do
+    dir="$(dirname "$file")"
+    # One requirement per logical line, each NAME==VERSION followed by its digests, and no option that
+    # names another source.
+    unpinned="$(sed -e ':a' -e '/\\$/N; s/\\\n//; ta' "$file" | grep -vE '^[[:space:]]*(#|$)' \
+      | grep -vE '^[A-Za-z0-9._-]+==[^ ]+( +--hash=sha256:[0-9a-f]{64})+[[:space:]]*$' | tr '\n' ' ')"
+    [[ -z "$unpinned" ]] || failed+=" ${dir#"$published_root"/} requires what is not pinned with a digest: ${unpinned% };"
+    venv="$(mktemp -d)"
+    if ! { python3 -m venv "$venv/v" && env -u PIP_INDEX_URL -u PIP_EXTRA_INDEX_URL -u PIP_FIND_LINKS \
+        "$venv/v/bin/python" -m pip install --quiet --disable-pip-version-check --no-cache-dir \
+        --index-url https://pypi.org/simple --require-hashes -r "$file"; } > /dev/null 2>&1; then
+      failed+=" ${dir#"$published_root"/} does not install from the public index;"
+    fi
+    rm -rf "$venv"
+  done
+  [[ -z "$failed" ]] || { echo "${failed# }"; return 1; }
+}
