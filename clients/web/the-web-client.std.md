@@ -131,6 +131,6 @@
 | **Method** | test |
 | **Not applicable in** | — |
 | **Label** | blocking |
-| **Precondition** | a Core and `yoke-auth` built from the `yoke` module at the commit `ci/signed-in.sh` names, asking a stack of the test's own that accepts `alice` with `hunter2x`; its composition declares a routable `http+ws` channel on `127.0.0.1`, its certificate and key in the store; the front in front of it, trusting that certificate and serving with one of its own; a client trusting the front's certificate and keeping cookies as a browser does |
+| **Precondition** | a Core and `yoke-auth` from the published host archive of the release `ci/signed-in.sh` names, authenticated against the manifest, asking a stack of the test's own that accepts `alice` with `hunter2x`; its composition declares a routable `http+ws` channel on `127.0.0.1`, its certificate and key in the store; the front in front of it, trusting that certificate and serving with one of its own; a client trusting the front's certificate and keeping cookies as a browser does |
 | **Action** | open the attachment with no cookie; sign in through the front; open the attachment again |
 | **Expected** | the first is refused before any opening; the sign-in names `alice` and holds no token, and sets `yoke-session`; the second attachment opens, and its picture holds the channel `routable`, its client `alice` |
