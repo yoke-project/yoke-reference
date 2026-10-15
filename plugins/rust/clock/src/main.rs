@@ -16,6 +16,10 @@ async fn main() {
             std::process::exit(1);
         }
     };
+    // The library beats only once the clock has said how it is, so it says so as soon as it may.
+    if let Err(err) = unit.health(0, "keeping time").await {
+        eprintln!("clock: {err}");
+    }
     let mut term = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
         .expect("the clock listens for SIGTERM");
     loop {

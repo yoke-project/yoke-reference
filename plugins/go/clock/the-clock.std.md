@@ -43,3 +43,16 @@
 | **Precondition** | a clock whose time is 2026-09-26 12:00:00 UTC, acting on a Session that records what it is given |
 | **Action** | command it `clock.mark` |
 | **Expected** | the command is acknowledged as done, correlated to it, with `marked at 2026-09-26T12:00:00Z`; the occurrence `clock.marked` is reported with severity 10 and the same line |
+
+## yoke-reference:the-clock.04 — the published Core admits it, and it leaves in order when stopped
+
+| Field | Value |
+| --- | --- |
+| **Cites** | specs/90.42 · arch/90-sdks/07 §They hold no privileged route, and that is what they are for |
+| **Level** | L3 |
+| **Method** | test |
+| **Not applicable in** | — |
+| **Label** | blocking |
+| **Precondition** | the `yoke-core` of the release the clock's library was cut with, downloaded and authenticated against the release manifest; an instance in the service form with the clock built, its Manifest installed, and one unit of kind `plugin` naming it; nothing granted |
+| **Action** | start the Core, wait for the unit to run and then for longer than the Core's liveness window, then stop the Core |
+| **Expected** | the unit is admitted with what it declares withheld, since nothing is granted, and never refused; its Session opens and the unit is `Running`, and it stays `Running` at its first incarnation past the Core's first liveness window, its Session never revoked; when the Core stops it, the clock closes its Session itself, the unit is `Stopped`, and no clock process remains |

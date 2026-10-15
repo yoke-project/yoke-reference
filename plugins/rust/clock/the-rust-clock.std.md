@@ -54,5 +54,5 @@
 | **Not applicable in** | — |
 | **Label** | blocking |
 | **Precondition** | the `yoke-core` of the release the clock's library was cut with, downloaded and authenticated against the release manifest; an instance in the service form with the clock built, its Manifest installed, and one unit of kind `plugin` naming it; nothing granted |
-| **Action** | start the Core, wait for the unit to run, then stop the Core |
-| **Expected** | the unit is admitted with what it declares withheld, since nothing is granted, and never refused; its Session opens and the unit is `Running`; when the Core stops it, the clock closes its Session itself, the unit is `Stopped`, and no clock process remains |
+| **Action** | start the Core, wait for the unit to run and then for longer than the Core's liveness window, then stop the Core |
+| **Expected** | the unit is admitted with what it declares withheld, since nothing is granted, and never refused; its Session opens and the unit is `Running`, and it stays `Running` at its first incarnation past the Core's first liveness window, its Session never revoked; when the Core stops it, the clock closes its Session itself, the unit is `Stopped`, and no clock process remains |
