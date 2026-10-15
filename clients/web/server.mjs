@@ -2,12 +2,19 @@
 // channel, unchanged. It is what stands in front of the channel so the pages and the contract share one
 // origin; it answers no operation of its own, and anything that is neither a page nor under /v1/ is 404.
 //
-// Usage: node server.mjs --channel <http://127.0.0.1:port | unix:/path/to/socket> [--listen 127.0.0.1:8080]
+// Usage: node server.mjs --channel <http://127.0.0.1:port | https://host:port | unix:/path/to/socket>
+//          [--roots channel-roots.pem] [--cert front.crt --key front.key] [--listen 127.0.0.1:8080]
+//
+// In front of a routable channel the front speaks TLS both ways: to the channel, TLS 1.3 alone, trusting
+// the roots it is given and no others; to the browser, with the certificate it is given, since the
+// session cookie is Secure and a browser keeps it only from a page served over HTTPS.
 
-import { createReadStream } from "node:fs";
+import { createReadStream, readFileSync } from "node:fs";
 import { stat } from "node:fs/promises";
 import http from "node:http";
+import https from "node:https";
 import net from "node:net";
+import tls from "node:tls";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,16 +27,39 @@ const types = {
   ".svg": "image/svg+xml",
 };
 
-// A channel's address as the front reaches it: a local socket, or a host and port.
-export function channelOf(address) {
+// A channel's address as the front reaches it: a local socket, a host and port, or a host and port over
+// TLS, which needs the roots the channel's certificate is verified against.
+export function channelOf(address, roots) {
   if (address.startsWith("unix:")) return { socketPath: address.slice("unix:".length) };
   const url = new URL(address);
-  if (url.protocol !== "http:") throw new Error(`the channel ${address} is neither unix:<path> nor http://<host>:<port>`);
-  return { host: url.hostname, port: Number(url.port || 80) };
+  if (url.protocol === "http:") return { host: url.hostname, port: Number(url.port || 80) };
+  if (url.protocol !== "https:") throw new Error(`the channel ${address} is neither unix:<path>, http://<host>:<port> nor https://<host>:<port>`);
+  if (!roots) throw new Error(`the channel ${address} speaks TLS, and the front trusts only the roots it is given: give it --roots`);
+  const host = url.hostname.replace(/^\[|\]$/g, "");
+  return {
+    host,
+    port: Number(url.port || 443),
+    tls: {
+      ca: roots,
+      rejectUnauthorized: true,
+      minVersion: "TLSv1.3",
+      ALPNProtocols: ["http/1.1"],
+      ...(net.isIP(host) ? {} : { servername: host }),
+    },
+  };
 }
 
 function connectTo(channel) {
-  return channel.socketPath ? net.connect(channel.socketPath) : net.connect(channel.port, channel.host);
+  if (channel.socketPath) return net.connect(channel.socketPath);
+  if (channel.tls) return tls.connect({ host: channel.host, port: channel.port, ...channel.tls });
+  return net.connect(channel.port, channel.host);
+}
+
+// What a request to the channel is made with: http over a socket or a port, https over TLS.
+function requestTo(channel, options, answered) {
+  const { tls: secured, ...where } = channel;
+  if (secured) return https.request({ ...where, ...secured, agent: false, ...options }, answered);
+  return http.request({ ...where, ...options }, answered);
 }
 
 async function servePage(request, response) {
@@ -49,8 +79,9 @@ async function servePage(request, response) {
 
 // The control shape: the request as it came, and the answer as it went.
 function forward(channel, request, response) {
-  const upstream = http.request(
-    { ...channel, method: request.method, path: request.url, headers: request.headers },
+  const upstream = requestTo(
+    channel,
+    { method: request.method, path: request.url, headers: request.headers },
     (answer) => {
       response.writeHead(answer.statusCode, answer.rawHeaders);
       answer.pipe(response);
@@ -70,7 +101,7 @@ function forwardUpgrade(channel, request, client, head, tunnels) {
   const upstream = connectTo(channel);
   tunnels.add(client);
   client.on("close", () => tunnels.delete(client));
-  upstream.on("connect", () => {
+  upstream.on(channel.tls ? "secureConnect" : "connect", () => {
     const lines = [`${request.method} ${request.url} HTTP/${request.httpVersion}`];
     for (let i = 0; i < request.rawHeaders.length; i += 2) lines.push(`${request.rawHeaders[i]}: ${request.rawHeaders[i + 1]}`);
     upstream.write(lines.join("\r\n") + "\r\n\r\n");
@@ -88,17 +119,21 @@ function forwardUpgrade(channel, request, client, head, tunnels) {
 
 const underContract = (url) => url === "/v1" || url.startsWith("/v1/");
 
-export function createFront({ channel }) {
-  const reached = typeof channel === "string" ? channelOf(channel) : channel;
+export function createFront({ channel, roots, cert, key }) {
+  const reached = typeof channel === "string" ? channelOf(channel, roots) : channel;
+  if (reached.tls && !(cert && key)) {
+    throw new Error("in front of a channel that speaks TLS the front serves HTTPS, since the session cookie is Secure: give it --cert and --key");
+  }
   // An upgraded connection is no longer the server's to close, so the front keeps them and ends them
   // when it closes.
   const tunnels = new Set();
-  const server = http.createServer(async (request, response) => {
+  const handle = async (request, response) => {
     if (underContract(request.url)) return forward(reached, request, response);
     if (await servePage(request, response)) return;
     response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     response.end("not found\n");
-  });
+  };
+  const server = cert ? https.createServer({ cert, key, minVersion: "TLSv1.3" }, handle) : http.createServer(handle);
   server.on("upgrade", (request, client, head) => {
     if (underContract(request.url)) return forwardUpgrade(reached, request, client, head, tunnels);
     client.end("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
@@ -117,11 +152,19 @@ function argument(name, fallback) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const channel = argument("channel", process.env.YOKE_CHANNEL);
   if (!channel) {
-    console.error("usage: node server.mjs --channel <http://127.0.0.1:port | unix:/path> [--listen host:port]");
+    console.error("usage: node server.mjs --channel <http://127.0.0.1:port | https://host:port | unix:/path> [--roots F] [--cert F --key F] [--listen host:port]");
     process.exit(2);
   }
+  const file = (name) => (argument(name) ? readFileSync(argument(name)) : undefined);
   const [host, port] = argument("listen", "127.0.0.1:8080").split(/:(?=\d+$)/);
-  createFront({ channel }).listen(Number(port), host, () => {
-    console.log(`the reference web client is at http://${host}:${port}/, in front of ${channel}`);
+  let front;
+  try {
+    front = createFront({ channel, roots: file("roots"), cert: file("cert"), key: file("key") });
+  } catch (error) {
+    console.error(error.message);
+    process.exit(2);
+  }
+  front.listen(Number(port), host, () => {
+    console.log(`the reference web client is at ${front instanceof https.Server ? "https" : "http"}://${host}:${port}/, in front of ${channel}`);
   });
 }

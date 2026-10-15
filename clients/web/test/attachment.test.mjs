@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { Attachment, Refused } from "../public/attachment.js";
+import { Attachment, Refused, signIn } from "../public/attachment.js";
 import { Channel, Clock, opening, settled } from "./fakes.mjs";
 
 const base = "http://front.test";
@@ -230,3 +230,26 @@ async function a_streams_data_arrives_on_the_path_it_was_answered_with_header_an
   assert.equal(socket.closedWith, 1000);
 }
 test(a_streams_data_arrives_on_the_path_it_was_answered_with_header_and_payload_unchanged);
+
+// std: yoke-reference:the-web-client.08
+async function signing_in_is_a_request_of_its_own_and_the_token_never_reaches_the_page() {
+  const channel = new Channel();
+  channel.answer(
+    "authenticate",
+    { json: { authenticate: { account: "alice", expires: "2026-10-16T09:00:00Z" } } },
+    { status: 401, json: { code: "auth.invalid", message: "the host did not accept the secret" } },
+  );
+  const answered = await signIn({ account: "alice", secret: "hunter2x" }, { base, fetch: channel.fetch });
+  assert.equal(channel.sockets.length, 0, "nothing is opened before signing in");
+  const [request] = channel.requestsFor("authenticate");
+  assert.equal(request.method, "POST");
+  assert.equal(request.credentials, "same-origin");
+  assert.deepEqual(request.body, { version: 1, authenticate: { password: { account: "alice", secret: "hunter2x" } } });
+  assert.deepEqual(answered, { account: "alice", expires: "2026-10-16T09:00:00Z" });
+  await assert.rejects(signIn({ account: "alice", secret: "wrong" }, { base, fetch: channel.fetch }), (error) => {
+    assert.ok(error instanceof Refused);
+    assert.equal(error.code, "auth.invalid");
+    return true;
+  });
+}
+test(signing_in_is_a_request_of_its_own_and_the_token_never_reaches_the_page);

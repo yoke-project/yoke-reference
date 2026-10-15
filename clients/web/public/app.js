@@ -2,7 +2,7 @@
 // which units it may address, what each may be asked, its streams, and the channel's own state. No unit,
 // Plugin or domain is named here; a payload is shown as text and sent as text.
 
-import { Attachment, Refused } from "./attachment.js";
+import { Attachment, Refused, signIn } from "./attachment.js";
 
 const $ = (selector) => document.querySelector(selector);
 const element = (tag, props = {}, ...children) => {
@@ -157,14 +157,41 @@ function show(attachment, picture) {
   showUnits(attachment, picture.units);
 }
 
+// On a routable channel nothing attaches before the caller is established: the attachment is refused, the
+// page asks for an account and a secret, signs in, and attaches again with the cookie that set.
+function signingIn() {
+  const form = $("#login");
+  form.hidden = false;
+  return new Promise((resolve) => {
+    form.onsubmit = async (submit) => {
+      submit.preventDefault();
+      const fields = new FormData(submit.target);
+      try {
+        await signIn({ account: fields.get("account"), secret: fields.get("secret") });
+        form.hidden = true;
+        resolve();
+      } catch (error) {
+        say($("#channel").appendChild(element("output")), error);
+      }
+    };
+  });
+}
+
 async function main() {
   let attachment;
   try {
     attachment = await Attachment.open();
-  } catch (error) {
+  } catch {
     $("#channel").className = "closed";
-    $("#channel").textContent = "the channel refused the attachment or cannot be reached";
-    return;
+    $("#channel").textContent = "the channel refused the attachment or cannot be reached; on a routable channel, sign in";
+    await signingIn();
+    try {
+      attachment = await Attachment.open();
+    } catch {
+      $("#channel").textContent = "the channel refused the attachment or cannot be reached";
+      return;
+    }
+    $("#channel").className = "";
   }
   attachment.listen((news) => {
     if (news.kind === "event") logEvent(news.event);
@@ -175,16 +202,6 @@ async function main() {
     }
   });
   show(attachment, attachment.picture);
-  $("#login").onsubmit = async (submit) => {
-    submit.preventDefault();
-    const form = new FormData(submit.target);
-    try {
-      await attachment.authenticate({ password: { account: form.get("account"), secret: form.get("secret") } });
-      $("#login").hidden = true;
-    } catch (error) {
-      say($("#channel").appendChild(element("output")), error);
-    }
-  };
 }
 
 main();

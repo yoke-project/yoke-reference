@@ -11,7 +11,7 @@ export class Channel {
     this.fetch = async (url, init) => {
       const { pathname } = new URL(url);
       const body = JSON.parse(init.body);
-      channel.requests.push({ url, method: init.method, path: pathname, body });
+      channel.requests.push({ url, method: init.method, path: pathname, body, credentials: init.credentials });
       const operation = pathname.slice("/v1/".length);
       const queue = channel.answers.get(operation) ?? [];
       const reply = queue.length > 1 ? queue.shift() : queue[0];

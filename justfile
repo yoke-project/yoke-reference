@@ -49,6 +49,8 @@ test:
     done
     # L3: the references in Rust and Python under the published Core, on this host.
     bash ci/admitted.sh "{{venvs}}/plugins-python-clock/bin/python" | tee .results/admitted.txt; (( PIPESTATUS[0] == 0 )) || status=1
+    # L3: the reference web client across a routable channel of a real Core, on this host.
+    bash ci/signed-in.sh | tee .results/signed-in.txt; (( PIPESTATUS[0] == 0 )) || status=1
     : > .results/node.json
     here="$PWD"
     for package in $(find . -name package.json -not -path '*/node_modules/*' -not -path './.git/*' | sort); do

@@ -28,6 +28,7 @@ go_results=()
 [[ -s "$results/python.json" ]] && go_results+=(--results "$results/python.json")
 # And the L3 cases leave lines in the checks' form.
 [[ -s "$results/admitted.txt" ]] && go_results+=(--results "$results/admitted.txt")
+[[ -s "$results/signed-in.txt" ]] && go_results+=(--results "$results/signed-in.txt")
 if [[ -n "${PREDECESSOR:-}" ]]; then
   blocked="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("blocks") is not False)' "$PREDECESSOR" 2>/dev/null)"
   # A predecessor whose record cannot be read did not pass either.
