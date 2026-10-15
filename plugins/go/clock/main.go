@@ -24,6 +24,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, "clock:", err)
 		os.Exit(1)
 	}
+	// The library beats only once the clock has said how it is, so it says so as soon as it may.
+	if err := u.Health(0, "keeping time"); err != nil {
+		fmt.Fprintln(os.Stderr, "clock:", err)
+	}
 	for {
 		select {
 		case event, open := <-u.Events():

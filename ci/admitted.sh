@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# L3: each reference Plugin in Rust and Python, built from the registries, is admitted by the published
-# Core of the release its library was cut with, and leaves in order when the Core stops. Prints one
+# L3: each reference Plugin in Go, Rust and Python, built from the registries, is admitted by the published
+# Core of the release its library was cut with, keeps its liveness past the Core's first window, and
+# leaves in order when the Core stops. Prints one
 # line per case, as checks/run.sh does, and exits non-zero if any failed.
 # Usage: admitted.sh <python> — the interpreter whose environment holds the Python clock's requirements.
 set -uo pipefail
@@ -31,9 +32,14 @@ obtain_core() {
   tar -xzf "$work/$archive" -C "$work" yoke-core
 }
 
-# admitted <name> <executable> <pattern>: an instance whose one unit is the clock, run until the unit runs and
-# then stopped; succeeds when the Core admitted it with what it declares withheld, opened its Session,
-# saw it run, saw the clock close the Session when stopped, and the clock was gone once the Core stopped.
+# A beat the Core does not receive ends a Session within this long after it opened, on the terms a Core of
+# the release assigns; a clock still at its first incarnation after it has kept its liveness.
+liveness=40
+
+# admitted <name> <executable> <pattern>: an instance whose one unit is the clock, run until the unit runs, then
+# past the liveness window, then stopped; succeeds when the Core admitted it with what it declares withheld,
+# opened its Session, saw it run, never revoked it, saw the clock close the Session when stopped, and the
+# clock was gone once the Core stopped.
 admitted() {
   local name="$1" executable="$2" pattern="$3" inst run log core waited=0
   inst="$work/$name" run="$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/yr.XXXX")" log="$work/$name.log"
@@ -46,6 +52,7 @@ admitted() {
   YOKE_CONFIG="$inst/core.yaml" "$work/yoke-core" --composition "$inst/deployment.yaml" > "$log" 2>&1 &
   core=$!
   until grep -q 'subject=unit:clock#1 .*to=Running' "$log" || (( waited >= 30 )); do sleep 1; ((waited++)); done
+  grep -q 'subject=unit:clock#1 .*to=Running' "$log" && sleep "$liveness"
   kill -INT "$core"; wait "$core"
   rm -rf "$run"
   local why=""
@@ -53,10 +60,18 @@ admitted() {
     || why+=" it was not admitted with what it declares withheld;"
   grep -q 'msg=session unit=clock event=opened' "$log" || why+=" its Session did not open;"
   grep -q 'subject=unit:clock#1 .*to=Running' "$log" || why+=" it did not run;"
+  grep -q 'msg=session unit=clock ended=revoked' "$log" && why+=" its Session was revoked;"
+  grep -q 'subject=unit:clock#2 ' "$log" && why+=" it was started again;"
   grep -q 'msg=session unit=clock ended=closed' "$log" || why+=" its Session did not end by its closing it;"
   grep -q 'subject=unit:clock#1 .*to=Stopped' "$log" || why+=" it did not stop;"
   pgrep -f "$pattern" > /dev/null && why+=" a clock outlived the Core;"
   [[ -z "$why" ]] || { echo "${why# }"; sed -n '1,200p' "$log" | grep -E 'admission|session|unit:clock|refus|clock:' | head -20; return 1; }
+}
+
+# std: yoke-reference:the-clock.04
+check_the_published_core_admits_the_go_clock() {
+  CGO_ENABLED=0 go -C "$root/plugins/go/clock" build -o "$work/go-clock" . || { echo "the Go clock does not build"; return 1; }
+  admitted go "$work/go-clock" "$work/go/plugins/"
 }
 
 # std: yoke-reference:the-rust-clock.04
@@ -75,11 +90,12 @@ check_the_published_core_admits_the_python_clock() {
 }
 
 if ! out="$(obtain_core 2>&1)"; then
-  for id in yoke-reference:the-rust-clock.04 yoke-reference:the-python-clock.04; do echo "FAIL  $id — the published Core: $out"; done
+  for id in yoke-reference:the-clock.04 yoke-reference:the-rust-clock.04 yoke-reference:the-python-clock.04; do echo "FAIL  $id — the published Core: $out"; done
   exit 1
 fi
 status=0
-for pair in "yoke-reference:the-rust-clock.04 check_the_published_core_admits_the_rust_clock" \
+for pair in "yoke-reference:the-clock.04 check_the_published_core_admits_the_go_clock" \
+            "yoke-reference:the-rust-clock.04 check_the_published_core_admits_the_rust_clock" \
             "yoke-reference:the-python-clock.04 check_the_published_core_admits_the_python_clock"; do
   read -r id fn <<<"$pair"
   if out="$("$fn" 2>&1)"; then echo "pass  $id"; else echo "FAIL  $id — $out"; status=1; fi

@@ -52,6 +52,8 @@ async def handle(unit, event, now=now):
 
 async def run():
     unit = await plugin.start(declaration())
+    # The library beats only once the clock has said how it is, so it says so as soon as it may.
+    await unit.health(0, "keeping time")
     stopping = asyncio.Event()
     asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, stopping.set)
     asked = asyncio.create_task(stopping.wait())
