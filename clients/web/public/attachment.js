@@ -63,6 +63,33 @@ function keyOf(record) {
   return undefined;
 }
 
+// One request on the control shape, the same-origin cookie carried by the browser and never read here.
+async function post(fetch, base, operation, body) {
+  const response = await fetch(`${base}/v1/${operation}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ version: VERSION, [field(operation)]: body }),
+  });
+  const text = await response.text();
+  let decoded = {};
+  try {
+    decoded = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Refused({ code: "transport", message: `${response.status} ${text}` }, response.status);
+  }
+  if (!response.ok) throw new Refused(decoded.code ? decoded : { code: "transport", message: text }, response.status);
+  return { answer: decoded[field(operation)] ?? {}, call: response.headers.get("Yoke-Call") };
+}
+
+// Signing in, on a routable channel, before anything is attached: the password goes to the channel once,
+// and what comes back is a cookie the page cannot read and an answer naming the account and the expiry.
+// The attachment opened after it is established by that cookie.
+export async function signIn({ account, secret }, { base = globalThis.location?.origin, fetch = globalThis.fetch.bind(globalThis) } = {}) {
+  const { answer } = await post(fetch, base, "authenticate", { password: { account, secret } });
+  return { account: answer.account, expires: answer.expires };
+}
+
 // What a channel observes, held by subject and replaced record by record.
 export class Picture {
   constructor(snapshot) {
@@ -219,22 +246,8 @@ export class Attachment {
   }
 
   // One request on the control shape: its operation is the path, its answer comes once.
-  async call(operation, body = {}) {
-    const response = await this.fetch(`${this.base}/v1/${operation}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({ version: VERSION, [field(operation)]: body }),
-    });
-    const text = await response.text();
-    let decoded = {};
-    try {
-      decoded = text ? JSON.parse(text) : {};
-    } catch {
-      throw new Refused({ code: "transport", message: `${response.status} ${text}` }, response.status);
-    }
-    if (!response.ok) throw new Refused(decoded.code ? decoded : { code: "transport", message: text }, response.status);
-    return { answer: decoded[field(operation)] ?? {}, call: response.headers.get("Yoke-Call") };
+  call(operation, body = {}) {
+    return post(this.fetch, this.base, operation, body);
   }
 
   async authenticate(credential) {
