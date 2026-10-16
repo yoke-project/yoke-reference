@@ -20,6 +20,7 @@ would, from the package registry, at a released version.
 | `plugins/go/acquire/` | `acquire`, the example application's Plugin on the host: it drives a spectrometer over the serial device its unit binds, with `instrument/`, a program playing the spectrometer on a pseudo-terminal |
 | `oneshots/go/store/` | `provision-store` and `migrate-store`, the example application's units that run to completion: they prepare the archive's store and carry it from one layout to the next; with a `Containerfile` building either |
 | `clients/qt/panel/` | `panel`, the example application's managed interface, in C++ with Qt: it composes itself from the opening picture as the web client does, built against the C++ family's source release |
+| `applications/station/` | `com.yoke.station`, the example application, at 2.1.0 and 2.2.0: `compose.sh` writes it with the composer's verbs alone, for the executables and images in hand |
 | `clients/web/` | A web client of the interface contract on its browser projection, in Node.js — see its own README |
 | `checks/`, `ci/` | This repository's own checks, and the scripts continuous integration runs; `ci/admitted.sh` runs the Rust and Python clocks under the published Core, `ci/station.sh` runs `acquire`, `ci/pipeline.sh` and `ci/archive.sh` run `pipeline`'s and `archive`'s images under Podman |
 

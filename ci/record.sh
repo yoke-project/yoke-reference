@@ -31,6 +31,7 @@ go_results=()
 [[ -s "$results/signed-in.txt" ]] && go_results+=(--results "$results/signed-in.txt")
 [[ -s "$results/station.txt" ]] && go_results+=(--results "$results/station.txt")
 [[ -s "$results/panel.txt" ]] && go_results+=(--results "$results/panel.txt")
+[[ -s "$results/station-project.txt" ]] && go_results+=(--results "$results/station-project.txt")
 [[ -s "$results/pipeline.txt" ]] && go_results+=(--results "$results/pipeline.txt")
 [[ -s "$results/archive.txt" ]] && go_results+=(--results "$results/archive.txt")
 if [[ -n "${PREDECESSOR:-}" ]]; then
