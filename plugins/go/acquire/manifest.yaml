@@ -1,0 +1,20 @@
+manifest: 1
+id: com.yoke.station.acquire
+protocol: 1
+needs:
+    - device:instrument
+streams:
+    - id: station.spectra
+    - id: station.diagnostics
+occurrences:
+    - id: calibration.drift
+capabilities:
+    - name: stream.spectra.publish
+      governs:
+        stream: station.spectra
+    - name: stream.diagnostics.publish
+      governs:
+        stream: station.diagnostics
+    - name: occurrence.calibration.drift.report
+      governs:
+        occurrence: calibration.drift
