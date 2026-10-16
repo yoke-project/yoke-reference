@@ -1,0 +1,13 @@
+# The example's archive, a reference Plugin in Rust run in a container: built from the published crate
+# alone, and copied whole as the start of a Plugin that keeps data.
+[package]
+name = "archive"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.88"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+yoke-sdk = "=0.4.1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time"] }

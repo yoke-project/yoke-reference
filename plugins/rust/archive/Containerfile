@@ -1,0 +1,11 @@
+# archive's image: built from the published crate and what Cargo.lock pins, in a first stage, and run
+# from a slim one. Built with `podman build plugins/rust/archive`.
+FROM docker.io/library/rust:1-slim-trixie AS build
+WORKDIR /archive
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+RUN cargo build --release --locked
+
+FROM docker.io/library/debian:trixie-slim
+COPY --from=build /archive/target/release/archive /usr/local/bin/archive
+ENTRYPOINT ["/usr/local/bin/archive"]

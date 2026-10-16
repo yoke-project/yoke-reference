@@ -14,11 +14,12 @@ would, from the package registry, at a released version.
 | --- | --- |
 | `plugins/go/clock/` | A clock Plugin in Go, with its Manifest |
 | `plugins/rust/clock/` | The same clock in Rust |
+| `plugins/rust/archive/` | `archive`, the example application's Plugin in a container that keeps data: it stores datasets in the layout its storage says it has; with its `Containerfile` |
 | `plugins/python/clock/` | The same clock in Python |
 | `plugins/python/pipeline/` | `pipeline`, the example application's Plugin in a container: it identifies a spectrum it is asked about against an index of reference lines; with its `Containerfile` |
 | `plugins/go/acquire/` | `acquire`, the example application's Plugin on the host: it drives a spectrometer over the serial device its unit binds, with `instrument/`, a program playing the spectrometer on a pseudo-terminal |
 | `clients/web/` | A web client of the interface contract on its browser projection, in Node.js — see its own README |
-| `checks/`, `ci/` | This repository's own checks, and the scripts continuous integration runs; `ci/admitted.sh` runs the Rust and Python clocks under the published Core, `ci/station.sh` runs `acquire`, `ci/pipeline.sh` runs `pipeline`'s image under Podman |
+| `checks/`, `ci/` | This repository's own checks, and the scripts continuous integration runs; `ci/admitted.sh` runs the Rust and Python clocks under the published Core, `ci/station.sh` runs `acquire`, `ci/pipeline.sh` and `ci/archive.sh` run `pipeline`'s and `archive`'s images under Podman |
 
 A test's description sits beside the test, as a `.std.md` file.
 
@@ -27,7 +28,7 @@ A test's description sits beside the test, as a `.std.md` file.
 Go, Rust through `cargo`, Python 3, Node.js 24 or newer, and [`just`](https://just.systems) 1.58.0 or
 newer. Nobody needs them all to change one program; `just build` and `just test` walk every program,
 so they do. `just develop` also puts the published verification tool, `yoke-verify`, on the `PATH`,
-which `just test` needs, and `just test` runs `pipeline`'s image under Podman, so it needs Podman too. The
+which `just test` needs, and `just test` runs `pipeline`'s and `archive`'s images under Podman, so it needs Podman too. The
 `Containerfile` builds a container with the toolchains.
 
 | Command | What it does |
