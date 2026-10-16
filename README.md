@@ -18,6 +18,7 @@ would, from the package registry, at a released version.
 | `plugins/python/clock/` | The same clock in Python |
 | `plugins/python/pipeline/` | `pipeline`, the example application's Plugin in a container: it identifies a spectrum it is asked about against an index of reference lines; with its `Containerfile` |
 | `plugins/go/acquire/` | `acquire`, the example application's Plugin on the host: it drives a spectrometer over the serial device its unit binds, with `instrument/`, a program playing the spectrometer on a pseudo-terminal |
+| `oneshots/go/store/` | `provision-store` and `migrate-store`, the example application's units that run to completion: they prepare the archive's store and carry it from one layout to the next; with a `Containerfile` building either |
 | `clients/web/` | A web client of the interface contract on its browser projection, in Node.js — see its own README |
 | `checks/`, `ci/` | This repository's own checks, and the scripts continuous integration runs; `ci/admitted.sh` runs the Rust and Python clocks under the published Core, `ci/station.sh` runs `acquire`, `ci/pipeline.sh` and `ci/archive.sh` run `pipeline`'s and `archive`'s images under Podman |
 
