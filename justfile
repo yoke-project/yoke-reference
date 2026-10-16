@@ -51,6 +51,8 @@ test:
     bash ci/admitted.sh "{{venvs}}/plugins-python-clock/bin/python" | tee .results/admitted.txt; (( PIPESTATUS[0] == 0 )) || status=1
     # L3: acquire under the published Core, driving the instrument on a pseudo-terminal, on this host.
     bash ci/station.sh | tee .results/station.txt; (( PIPESTATUS[0] == 0 )) || status=1
+    # L3: pipeline's image run by Podman under the published Core, on this host.
+    bash ci/pipeline.sh "{{venvs}}/plugins-python-pipeline/bin/python" | tee .results/pipeline.txt; (( PIPESTATUS[0] == 0 )) || status=1
     # L3: the reference web client across a routable channel of a real Core, on this host.
     bash ci/signed-in.sh | tee .results/signed-in.txt; (( PIPESTATUS[0] == 0 )) || status=1
     : > .results/node.json
