@@ -1,0 +1,16 @@
+manifest: 1
+id: com.yoke.station.archive
+protocol: 1
+needs:
+  - storage:datasets
+commands:
+  - id: archive.store
+queries:
+  - id: archive.describe
+capabilities:
+  - name: command.store.accept
+    governs:
+      command: archive.store
+  - name: query.describe.answer
+    governs:
+      query: archive.describe

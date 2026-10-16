@@ -31,6 +31,7 @@ go_results=()
 [[ -s "$results/signed-in.txt" ]] && go_results+=(--results "$results/signed-in.txt")
 [[ -s "$results/station.txt" ]] && go_results+=(--results "$results/station.txt")
 [[ -s "$results/pipeline.txt" ]] && go_results+=(--results "$results/pipeline.txt")
+[[ -s "$results/archive.txt" ]] && go_results+=(--results "$results/archive.txt")
 if [[ -n "${PREDECESSOR:-}" ]]; then
   blocked="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("blocks") is not False)' "$PREDECESSOR" 2>/dev/null)"
   # A predecessor whose record cannot be read did not pass either.
