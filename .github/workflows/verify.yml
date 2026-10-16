@@ -28,6 +28,7 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
+      - run: ci/install-tools.sh
       - run: just develop
       - run: just build
       - run: just lint

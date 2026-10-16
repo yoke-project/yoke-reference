@@ -12,6 +12,9 @@ COPY --from=docker.io/library/rust:1.94-bookworm /usr/local/rustup /usr/local/ru
 ENV CARGO_HOME=/usr/local/cargo RUSTUP_HOME=/usr/local/rustup PATH=/usr/local/cargo/bin:$PATH
 # The references in Python install their requirements into an environment of their own.
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-venv && rm -rf /var/lib/apt/lists/*
+# The Qt panel builds against the C++ family's source release, with CMake, gRPC's C++ API and Qt's widgets.
+RUN apt-get update && apt-get install -y --no-install-recommends cmake pkg-config libprotobuf-dev libgrpc++-dev libssl-dev qt6-base-dev jq \
+    && rm -rf /var/lib/apt/lists/*
 RUN curl -fsSL https://just.systems/install.sh | bash -s -- --tag "${JUST_VERSION}" --to /usr/local/bin
 WORKDIR /src
 COPY . .
