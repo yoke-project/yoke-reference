@@ -1,0 +1,8 @@
+# pipeline's image: the published Python plugin library and what it requires, from the public index and
+# pinned by their digests, and the program. Built with `podman build plugins/python/pipeline`.
+FROM docker.io/library/python:3.14-slim
+WORKDIR /pipeline
+COPY requirements.txt .
+RUN pip install --no-cache-dir --disable-pip-version-check --require-hashes -r requirements.txt
+COPY pipeline.py .
+ENTRYPOINT ["python3", "-I", "/pipeline/pipeline.py"]

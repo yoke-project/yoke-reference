@@ -1,0 +1,14 @@
+manifest: 1
+id: com.yoke.station.pipeline
+protocol: 1
+streams:
+  - id: station.identified
+queries:
+  - id: spectrum.identify
+capabilities:
+  - name: query.identify.answer
+    governs:
+      query: spectrum.identify
+  - name: stream.identified.publish
+    governs:
+      stream: station.identified
