@@ -100,7 +100,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | arch/80-security/08 §2 — A browser reaches a routable channel · arch/80-security/04 §The session token · arch/70-interface-surface/08 §`http+ws` — the browser projection |
+| **Cites** | specs/80.9 · arch/80-security/08 §2 — A browser reaches a routable channel · arch/80-security/04 §The session token · arch/70-interface-surface/08 §`http+ws` — the browser projection |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
