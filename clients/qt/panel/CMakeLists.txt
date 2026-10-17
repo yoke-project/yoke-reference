@@ -8,7 +8,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC OFF)
 
 # 0.6 left out the administrative contract, which the panel never used; both are what it builds against.
-find_package(yoke-sdk-cpp 0.5...<0.7 REQUIRED)
+# The family's version file accepts one minor version alone, so the two are checked here.
+find_package(yoke-sdk-cpp REQUIRED)
+if(yoke-sdk-cpp_VERSION VERSION_LESS 0.5 OR NOT yoke-sdk-cpp_VERSION VERSION_LESS 0.7)
+    message(FATAL_ERROR "the panel builds against yoke-sdk-cpp 0.5 or 0.6, and found ${yoke-sdk-cpp_VERSION}")
+endif()
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 add_library(panel-lib STATIC src/picture.cpp src/window.cpp)
