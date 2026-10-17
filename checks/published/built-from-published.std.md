@@ -9,7 +9,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | specs/00.2 · specs/00.12 · specs/70.46 · prj_structure/40 C1 · prj_structure/40 C2 · prj_structure/40 C3 · arch/90-sdks/07 §They hold no privileged route, and that is what they are for |
+| **Cites** | specs/00.2 · specs/00.12 · specs/70.46 · prj_structure/40 C1 · prj_structure/40 C2 · prj_structure/40 C3 · arch/90-sdks/07 §They hold no privileged route, and that is what they are for · prj_structure/40 C4 |
 | **Level** | L1 |
 | **Method** | check |
 | **Not applicable in** | — |
