@@ -48,7 +48,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | specs/70.19 · specs/70.21 · specs/97.12 · arch/90-sdks/07 §They hold no privileged route, and that is what they are for |
+| **Cites** | specs/00.2 · specs/70.19 · specs/70.21 · specs/97.12 · arch/90-sdks/07 §They hold no privileged route, and that is what they are for |
 | **Level** | L3 |
 | **Method** | test |
 | **Not applicable in** | — |
