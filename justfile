@@ -53,9 +53,8 @@ test:
     bash ci/station.sh | tee .results/station.txt; (( PIPESTATUS[0] == 0 )) || status=1
     # The Qt panel, built against the C++ family's source release: its L1 cases, then L3 under the published Core.
     bash ci/panel.sh | tee .results/panel.txt; (( PIPESTATUS[0] == 0 )) || status=1
-    # The example application written with the published composer. Its case is not blocking until a
-    # release carries what it waits on, so the record, which reads the label, says what a failure stops.
-    bash ci/station-project.sh | tee .results/station-project.txt
+    # The example application written with the published composer.
+    bash ci/station-project.sh | tee .results/station-project.txt; (( PIPESTATUS[0] == 0 )) || status=1
     # L3: pipeline's image run by Podman under the published Core, on this host.
     bash ci/pipeline.sh "{{venvs}}/plugins-python-pipeline/bin/python" | tee .results/pipeline.txt; (( PIPESTATUS[0] == 0 )) || status=1
     # L3: archive's image run by Podman under the published Core, on its storage, on this host.
