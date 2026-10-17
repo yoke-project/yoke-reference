@@ -9,7 +9,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | specs/90.40 · arch/90-sdks/07 §What each one is · arch/70-interface-surface/03 · arch/70-interface-surface/08 |
+| **Cites** | specs/90.40 · arch/90-sdks/07 §What each one is · arch/70-interface-surface/03 §The opening picture · arch/70-interface-surface/08 §`http+ws` — the browser projection |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
@@ -22,7 +22,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | arch/70-interface-surface/04 · arch/70-interface-surface/08 · arch/90-sdks/07 §They hold no privileged route, and that is what they are for |
+| **Cites** | arch/70-interface-surface/04 §The eleven · arch/70-interface-surface/08 §`http+ws` — the browser projection · arch/90-sdks/07 §They hold no privileged route, and that is what they are for |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
@@ -35,7 +35,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | specs/90.40 · arch/70-interface-surface/05 · arch/45-events/04 |
+| **Cites** | specs/90.40 · arch/70-interface-surface/05 §What a subscription promises · arch/45-events/04 §3 — Overflow |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
@@ -48,7 +48,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | arch/70-interface-surface/03 §So liveness is the confirmed subscription and not a second mechanism · specs/90.41 |
+| **Cites** | arch/45-events/04 §A subscription may be confirmed · specs/90.41 |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
@@ -61,7 +61,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | arch/70-interface-surface/07 · arch/70-interface-surface/08 · specs/70.6 |
+| **Cites** | arch/70-interface-surface/07 §The three delivery paths · arch/70-interface-surface/08 §`http+ws` — the browser projection · specs/70.6 |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
@@ -74,7 +74,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | arch/90-sdks/07 §They hold no privileged route, and that is what they are for · arch/00-system/03 · specs/90.41 |
+| **Cites** | arch/90-sdks/07 §They hold no privileged route, and that is what they are for · arch/00-system/03 §The list · specs/90.41 |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
@@ -87,7 +87,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | arch/90-sdks/07 §They hold no privileged route, and that is what they are for · arch/70-interface-surface/08 |
+| **Cites** | arch/90-sdks/07 §They hold no privileged route, and that is what they are for · arch/70-interface-surface/08 §`http+ws` — the browser projection |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
@@ -113,7 +113,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | arch/80-security/08 §2 — A browser reaches a routable channel · arch/90-sdks/07 §They hold no privileged route, and that is what they are for · arch/70-interface-surface/08 |
+| **Cites** | arch/80-security/08 §2 — A browser reaches a routable channel · arch/90-sdks/07 §They hold no privileged route, and that is what they are for · arch/70-interface-surface/08 §`http+ws` — the browser projection |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
