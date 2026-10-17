@@ -13,7 +13,7 @@
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
-| **Label** | not blocking — yoke-project/yoke-reference#40 |
+| **Label** | blocking |
 | **Precondition** | the composer of the newest programs release, obtained through the public module proxy; the Manifests of `acquire`, `pipeline` and `archive` from this tree; two host executables, and an image reference for each containerised unit |
 | **Action** | run `compose.sh` for 2.1.0 and for 2.2.0; `yoke-compose check` and `yoke-compose build` each |
 | **Expected** | every verb exits 0; `check` refuses nothing and notes only that `remote` is on the loopback address; each build writes one package; 2.1.0 holds `provision-store`, `acquire`, `pipeline`, `archive` and `panel`, with `acquire`, `pipeline` and `archive` depending on `provision-store` and `panel` on `pipeline`, the parameters `shared.site_label`, `acquire.instrument`, `archive.retention_days` and `remote.listen_port`, the channels `panel` and `remote`, and `panel` prevailing over `remote`; 2.2.0 holds the same and `migrate-store`, with `migrates_from: "<2.2"`, on which `acquire`, `pipeline` and `archive` depend, and both declare `data: ">=2.0"` |
