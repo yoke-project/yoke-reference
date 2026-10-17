@@ -7,7 +7,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC OFF)
 
-find_package(yoke-sdk-cpp 0.5 REQUIRED)
+# 0.6 left out the administrative contract, which the panel never used; both are what it builds against.
+find_package(yoke-sdk-cpp 0.5...<0.7 REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 add_library(panel-lib STATIC src/picture.cpp src/window.cpp)
