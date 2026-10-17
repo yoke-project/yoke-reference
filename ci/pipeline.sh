@@ -10,7 +10,7 @@ set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 python="${1:?usage: pipeline.sh <python>}"
-release=0.6.0
+release=0.7.0
 manifest_url=https://raw.githubusercontent.com/yoke-project/yoke/main/releases/manifest.jsonl
 id=yoke-reference:pipeline.05
 image=localhost/yoke-reference-pipeline
