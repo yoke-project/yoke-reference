@@ -22,7 +22,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Cites** | specs/70.7 · specs/70.32 · specs/70.33 · arch/70-interface-surface/05 §What a subscription promises |
+| **Cites** | specs/31.31 · specs/70.7 · specs/70.32 · specs/70.33 · arch/70-interface-surface/05 §What a subscription promises |
 | **Level** | L1 |
 | **Method** | test |
 | **Not applicable in** | — |
