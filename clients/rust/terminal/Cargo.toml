@@ -1,0 +1,13 @@
+# A reference interface client in Rust: built from the published crate alone, and copied whole as the start
+# of a client of your own.
+[package]
+name = "terminal"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.88"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+yoke-sdk = "=0.5.0"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
