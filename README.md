@@ -21,8 +21,10 @@ would, from the package registry, at a released version.
 | `oneshots/go/store/` | `provision-store` and `migrate-store`, the example application's units that run to completion: they prepare the archive's store and carry it from one layout to the next; with a `Containerfile` building either |
 | `clients/qt/panel/` | `panel`, the example application's managed interface, in C++ with Qt: it composes itself from the opening picture as the web client does, built against the C++ family's source release |
 | `applications/station/` | `com.yoke.station`, the example application, at 2.1.0 and 2.2.0: `compose.sh` writes it with the composer's verbs alone, for the executables and images in hand |
+| `clients/rust/terminal/` | `terminal`, a reference interface client in Rust: it attaches to a channel, draws its picture, sends a command, asks a question and follows an event; built from the published crate alone |
+| `clients/python/terminal/` | The same client in Python, built from the published wheel alone |
 | `clients/web/` | A web client of the interface contract on its browser projection, in Node.js — see its own README |
-| `checks/`, `ci/` | This repository's own checks, and the scripts continuous integration runs; `ci/admitted.sh` runs the Rust and Python clocks under the published Core, `ci/station.sh` runs `acquire`, `ci/pipeline.sh` and `ci/archive.sh` run `pipeline`'s and `archive`'s images under Podman |
+| `checks/`, `ci/` | This repository's own checks, and the scripts continuous integration runs; `ci/admitted.sh` runs the Rust and Python clocks under the published Core, `ci/station.sh` runs `acquire`, `ci/pipeline.sh` and `ci/archive.sh` run `pipeline`'s and `archive`'s images under Podman, `ci/terminal.sh` runs the terminal clients against a channel of the published Core |
 
 A test's description sits beside the test, as a `.std.md` file.
 
