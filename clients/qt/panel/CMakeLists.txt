@@ -7,11 +7,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC OFF)
 
-# 0.6 left out the administrative contract, which the panel never used; both are what it builds against.
-# The family's version file accepts one minor version alone, so the two are checked here.
+# 0.6 left out the administrative contract, which the panel never used, and 0.7 gave the plugin library the
+# shared ring; the interface library the panel builds against is the same in the three. The family's version
+# file accepts one minor version alone, so the three are checked here.
 find_package(yoke-sdk-cpp REQUIRED)
-if(yoke-sdk-cpp_VERSION VERSION_LESS 0.5 OR NOT yoke-sdk-cpp_VERSION VERSION_LESS 0.7)
-    message(FATAL_ERROR "the panel builds against yoke-sdk-cpp 0.5 or 0.6, and found ${yoke-sdk-cpp_VERSION}")
+if(yoke-sdk-cpp_VERSION VERSION_LESS 0.5 OR NOT yoke-sdk-cpp_VERSION VERSION_LESS 0.8)
+    message(FATAL_ERROR "the panel builds against yoke-sdk-cpp 0.5, 0.6 or 0.7, and found ${yoke-sdk-cpp_VERSION}")
 endif()
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
