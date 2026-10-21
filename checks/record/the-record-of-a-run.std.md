@@ -69,3 +69,16 @@
 | **Precondition** | a clean checkout |
 | **Action** | ask git whether what a run writes is ignored |
 | **Expected** | it is, and nothing under it is ever reported as a change — a contributor who runs the verbs has nothing to undo and nothing to commit by mistake |
+
+## yoke-reference:the-record-of-a-run.06 — every result the run leaves is read
+
+| Field | Value |
+| --- | --- |
+| **Cites** | testing/40 §From a test's result to its case · testing/40 §A record |
+| **Level** | L1 |
+| **Method** | check |
+| **Not applicable in** | — |
+| **Label** | blocking |
+| **Precondition** | a clean checkout |
+| **Action** | read the `test` verb for every file it writes under `.results/`, and read the script that assembles the record |
+| **Expected** | each file the verb writes is read — by the script that assembles the record, or within the verb by what converts it into a file the script reads. A file written and read by nothing is a set of results no record carries, so the cases it holds are absent while their run passed. **Like `.01` it reads the verb and never the results** |

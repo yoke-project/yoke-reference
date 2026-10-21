@@ -121,3 +121,24 @@ check_nothing_a_run_writes_enters_the_tree() {
   seen="$(cd "$root" && git status --porcelain | grep -F '.results' || true)"
   [[ -z "$seen" ]] || { echo "a run left the results in the tree: $seen"; return 1; }
 }
+
+# std: yoke-reference:the-record-of-a-run.06
+# A file the verb writes is read by the record's script, or read again within the verb by what converts it.
+check_every_result_the_run_leaves_is_read() {
+  [[ -f "$record_script" ]] || { echo "no ci/record.sh"; return 1; }
+  local recipe
+  recipe="$(cd "$root" && just --show test 2>/dev/null)"
+  [[ -n "$recipe" ]] || { echo "no test verb"; return 1; }
+
+  local written name unread=""
+  # What the verb writes: the target of a tee or of a redirection.
+  written="$(grep -oE '(tee( -a)?|>>?) \.results/[A-Za-z0-9_.-]+' <<<"$recipe" | sed -E 's#.*\.results/##' | sort -u)"
+  [[ -n "$written" ]] || { echo "the verb writes no results"; return 1; }
+  for name in $written; do
+    grep -qF "\$results/$name" "$record_script" && continue
+    # Read within the verb: an occurrence that is not a write.
+    sed -E "s#(tee( -a)?|>>?) \.results/$name##g" <<<"$recipe" | grep -qF ".results/$name" && continue
+    unread+=" $name"
+  done
+  [[ -z "$unread" ]] || { echo "the verb writes results nothing reads:$unread"; return 1; }
+}
