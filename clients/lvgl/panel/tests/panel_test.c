@@ -122,7 +122,7 @@ static char *subjects(const panel_picture *p) {
 /* ---- the cases ---- */
 
 // std: yoke-reference:the-lvgl-panel.01
-static const char *the_picture_is_the_opening_held_by_subject(void) {
+static const char *the_lvgl_picture_is_the_opening_held_by_subject(void) {
     panel_picture *p = panel_picture_make(the_opening());
     char *held = subjects(p);
     const char *result = NULL;
@@ -298,7 +298,7 @@ int main(void) {
         const char *id;
         const char *(*run)(void);
     } cases[] = {
-        {"yoke-reference:the-lvgl-panel.01", the_picture_is_the_opening_held_by_subject},
+        {"yoke-reference:the-lvgl-panel.01", the_lvgl_picture_is_the_opening_held_by_subject},
         {"yoke-reference:the-lvgl-panel.02",
          an_event_reads_its_subject_again_an_overflow_replaces_and_only_the_applied_is_confirmed},
         {"yoke-reference:the-lvgl-panel.03", the_screen_is_composed_from_the_picture},

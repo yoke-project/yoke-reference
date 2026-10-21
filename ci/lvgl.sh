@@ -105,7 +105,7 @@ until_logged() {
 }
 
 # std: yoke-reference:the-lvgl-panel.06
-check_the_published_core_launches_the_panel_on_its_channel() {
+check_the_published_core_launches_the_lvgl_panel_on_its_channel() {
   "$work/yoke-core" --instance bench-a --bundle "$bundle" --unverified > "$log" 2>&1 &
   core=$!
   until_logged 'subject=unit:panel#1 .*to=Running' 60 || { echo "the panel did not run"; tail -20 "$log"; return 1; }
@@ -130,7 +130,7 @@ check_the_published_core_launches_the_panel_on_its_channel() {
   [[ -z "$why" ]] || { echo "${why# }"; echo "$said" | tail -8; grep -E 'unit:panel|unit:clock|refus' "$log" | head -20; return 1; }
 }
 
-if out="$(check_the_published_core_launches_the_panel_on_its_channel 2>&1)"; then
+if out="$(check_the_published_core_launches_the_lvgl_panel_on_its_channel 2>&1)"; then
   echo "pass  $l3"
 else
   echo "FAIL  $l3 — $out"
