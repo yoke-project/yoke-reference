@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Feature** | the Qt panel's twin for a device with a framebuffer: a managed interface written in C with LVGL against the published C interface library, attaching to the channel the Core hands it; it composes its screen from the opening picture — the channel's own state, and for each unit what the channel may address on it, with a button for each command and each question — keeps that picture current by reading again each subject an event of its own subscription names, replaces it on an overflow, and confirms only what it has applied; it draws to a framebuffer on a device and to memory under a test, and is built from the C family's source release and from an LVGL the build provides, as an image build provides one, or else from LVGL's release by the digest it pins |
-| **Planning item** | yoke-project/yoke-reference#55 · yoke-project/yoke-reference#61 |
+| **Planning item** | yoke-project/yoke-reference#55 · yoke-project/yoke-reference#61 · yoke-project/yoke-reference#64 |
 
 ## yoke-reference:the-lvgl-panel.01 — the picture is the opening, held by subject
 
@@ -108,3 +108,16 @@
 | **Precondition** | the C family of `.06`; no LVGL the build can find |
 | **Action** | configure the panel with downloads forbidden |
 | **Expected** | the configuration is refused, and its error names LVGL |
+
+## yoke-reference:the-lvgl-panel.09 — an LVGL provided whose headers do not compile is refused, saying so
+
+| Field | Value |
+| --- | --- |
+| **Cites** | prj_structure/40 E2 |
+| **Level** | L1 |
+| **Method** | test |
+| **Not applicable in** | — |
+| **Label** | blocking |
+| **Precondition** | the C family of `.06`; an LVGL the build finds by `pkg-config`, whose `lvgl.h` includes a header that is nowhere |
+| **Action** | configure the panel with downloads forbidden |
+| **Expected** | the configuration is refused; its error says LVGL's headers do not compile, and does not say the framebuffer driver is missing |
