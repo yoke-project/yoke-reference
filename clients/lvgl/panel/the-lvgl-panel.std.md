@@ -2,8 +2,8 @@
 
 | | |
 | --- | --- |
-| **Feature** | the Qt panel's twin for a device with a framebuffer: a managed interface written in C with LVGL against the published C interface library, attaching to the channel the Core hands it; it composes its screen from the opening picture — the channel's own state, and for each unit what the channel may address on it, with a button for each command and each question — keeps that picture current by reading again each subject an event of its own subscription names, replaces it on an overflow, and confirms only what it has applied; it draws to a framebuffer on a device and to memory under a test, and is built from the C family's source release and from LVGL's release by the digest it pins |
-| **Planning item** | yoke-project/yoke-reference#55 |
+| **Feature** | the Qt panel's twin for a device with a framebuffer: a managed interface written in C with LVGL against the published C interface library, attaching to the channel the Core hands it; it composes its screen from the opening picture — the channel's own state, and for each unit what the channel may address on it, with a button for each command and each question — keeps that picture current by reading again each subject an event of its own subscription names, replaces it on an overflow, and confirms only what it has applied; it draws to a framebuffer on a device and to memory under a test, and is built from the C family's source release and from an LVGL the build provides, as an image build provides one, or else from LVGL's release by the digest it pins |
+| **Planning item** | yoke-project/yoke-reference#55 · yoke-project/yoke-reference#61 |
 
 ## yoke-reference:the-lvgl-panel.01 — the picture is the opening, held by subject
 
@@ -82,3 +82,29 @@
 | **Precondition** | the host archive the manifest names as latest, authenticated by its digest; the panel, built against the C family's newest source release and LVGL; an instance holding the Go clock and the panel as a managed interface on its channel, `clients: single`, drawing to memory |
 | **Action** | start the Core; grant the clock its question and its command; restart the clock; read the panel's log; stop the Core |
 | **Expected** | the panel says it attached; composed the clock from the opening, and kept it current — the clock running with its command and its question — after the grants and the restart; it stops with the Core and does not outlive it |
+
+## yoke-reference:the-lvgl-panel.07 — the panel is built against an LVGL the build provides, and downloads nothing
+
+| Field | Value |
+| --- | --- |
+| **Cites** | prj_structure/40 E2 · prj_structure/97 §What a recipe pins, and what offline means |
+| **Level** | L1 |
+| **Method** | test |
+| **Not applicable in** | — |
+| **Label** | blocking |
+| **Precondition** | the C family of `.06`; LVGL's release, by the digest the panel pins, built with the panel's configuration and installed under a prefix of the case's own, which the build is told of by `pkg-config` |
+| **Action** | configure and build the panel with downloads forbidden |
+| **Expected** | the panel builds; the program links the LVGL of the prefix; nothing was downloaded |
+
+## yoke-reference:the-lvgl-panel.08 — with no LVGL provided and no download allowed, the build is refused, naming LVGL
+
+| Field | Value |
+| --- | --- |
+| **Cites** | prj_structure/40 E2 |
+| **Level** | L1 |
+| **Method** | test |
+| **Not applicable in** | — |
+| **Label** | blocking |
+| **Precondition** | the C family of `.06`; no LVGL the build can find |
+| **Action** | configure the panel with downloads forbidden |
+| **Expected** | the configuration is refused, and its error names LVGL |
