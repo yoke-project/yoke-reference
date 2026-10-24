@@ -13,7 +13,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 manifest_url="${YOKE_MANIFEST:-https://raw.githubusercontent.com/yoke-project/yoke/main/releases/manifest.jsonl}"
 downloads=https://github.com
 l3=yoke-reference:the-lvgl-panel.06
-l1=(yoke-reference:the-lvgl-panel.01 yoke-reference:the-lvgl-panel.02 yoke-reference:the-lvgl-panel.03 yoke-reference:the-lvgl-panel.04 yoke-reference:the-lvgl-panel.05)
+l1=(yoke-reference:the-lvgl-panel.01 yoke-reference:the-lvgl-panel.02 yoke-reference:the-lvgl-panel.03 yoke-reference:the-lvgl-panel.04 yoke-reference:the-lvgl-panel.05 yoke-reference:the-lvgl-panel.07 yoke-reference:the-lvgl-panel.08)
 
 work="$(mktemp -d)"
 run="$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/yr.XXXX")"
@@ -59,6 +59,47 @@ mkdir -p "$work/sdk" && tar -xzf "$work/sdk.tar.gz" -C "$work/sdk" --strip-compo
   || fail_all "the panel does not build against yoke-sdk-c $fver: $(grep -m3 error "$work/panel.log")"
 status=0
 "$work/panel/panel_test" 2> /dev/null || status=1
+
+# say <id> <why>: one case's line, failing when it names a reason.
+say() { if [[ -z "$2" ]]; then echo "pass  $1"; else echo "FAIL  $1 — $2"; status=1; fi; }
+
+# std: yoke-reference:the-lvgl-panel.07
+check_the_panel_builds_against_an_lvgl_the_build_provides() {
+  local lvgl="$work/lvgl" built
+  mkdir -p "$lvgl/conf" && cp "$root/clients/lvgl/panel/lv_conf.h" "$lvgl/conf/"
+  obtain https://github.com/lvgl/lvgl/archive/refs/tags/v9.6.0.tar.gz "$lvgl/lvgl.tar.gz" \
+    "sha256:$(sed -nE 's/.*URL_HASH SHA256=([0-9a-f]{64}).*/\1/p' "$root/clients/lvgl/panel/CMakeLists.txt")" \
+    || { echo "LVGL's release is not the file the panel pins"; return 1; }
+  mkdir -p "$lvgl/src" && tar -xzf "$lvgl/lvgl.tar.gz" -C "$lvgl/src" --strip-components=1
+  { cmake -S "$lvgl/src" -B "$lvgl/build" -DLV_BUILD_CONF_DIR="$lvgl/conf" -DBUILD_SHARED_LIBS=ON \
+      -DCONFIG_LV_BUILD_EXAMPLES=OFF -DCONFIG_LV_BUILD_DEMOS=OFF -DCMAKE_INSTALL_PREFIX="$lvgl/prefix" \
+      && cmake --build "$lvgl/build" --parallel && cmake --install "$lvgl/build"; } > "$lvgl/build.log" 2>&1 \
+    || { echo "LVGL does not build and install: $(tail -3 "$lvgl/build.log")"; return 1; }
+  built="$work/panel-provided"
+  { PKG_CONFIG_PATH="$lvgl/prefix/lib/pkgconfig:$lvgl/prefix/share/pkgconfig" \
+      cmake -S "$root/clients/lvgl/panel" -B "$built" -DCMAKE_PREFIX_PATH="$work/prefix" -DFETCHCONTENT_FULLY_DISCONNECTED=ON \
+      && cmake --build "$built" --parallel --target panel; } > "$built.log" 2>&1 \
+    || { echo "the panel does not build against the LVGL provided: $(grep -m3 -iE 'error' "$built.log")"; return 1; }
+  readelf -d "$built/panel" | grep -q 'NEEDED.*liblvgl\.so' || { echo "the panel does not link the LVGL provided"; return 1; }
+  find "$built" -name 'lvgl*.tar.gz' -o -name '_deps' | grep -q . && { echo "the build downloaded LVGL"; return 1; }
+  return 0
+}
+
+# std: yoke-reference:the-lvgl-panel.08
+check_the_panel_is_refused_with_no_lvgl_and_no_download() {
+  local refused="$work/panel-refused"
+  if PKG_CONFIG_PATH="$work/nothing" cmake -S "$root/clients/lvgl/panel" -B "$refused" -DCMAKE_PREFIX_PATH="$work/prefix" \
+       -DFETCHCONTENT_FULLY_DISCONNECTED=ON > "$refused.log" 2>&1; then
+    echo "the configuration was not refused"; return 1
+  fi
+  grep -A3 'CMake Error' "$refused.log" | grep -q 'LVGL' || { echo "the refusal does not name LVGL: $(grep -m1 -A2 'CMake Error' "$refused.log")"; return 1; }
+}
+
+for each in "yoke-reference:the-lvgl-panel.07 check_the_panel_builds_against_an_lvgl_the_build_provides" \
+            "yoke-reference:the-lvgl-panel.08 check_the_panel_is_refused_with_no_lvgl_and_no_download"; do
+  read -r id fn <<<"$each"
+  if out="$("$fn" 2>&1)"; then say "$id" ""; else say "$id" "$out"; fi
+done
 
 # L3: the published Core, the panel a managed interface on its channel beside the Go clock.
 host="$(newest yoke-linux-$architecture)"
