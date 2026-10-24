@@ -32,6 +32,12 @@ if(LVGL_FOUND)
     set(CMAKE_REQUIRED_INCLUDES ${PANEL_LVGL_HEADERS} ${LVGL_INCLUDE_DIRS})
     set(CMAKE_REQUIRED_DEFINITIONS ${LVGL_CFLAGS_OTHER})
     check_c_source_compiles("#include <lvgl.h>
+int main(void) { return 0; }" PANEL_LVGL_HEADERS_COMPILE)
+    if(NOT PANEL_LVGL_HEADERS_COMPILE)
+        unset(PANEL_LVGL_HEADERS_COMPILE CACHE)
+        message(FATAL_ERROR "the LVGL the build provides, ${LVGL_VERSION}: its headers do not compile with the flags its pkg-config file gives; the compiler's reason is in ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeConfigureLog.yaml")
+    endif()
+    check_c_source_compiles("#include <lvgl.h>
 #if !LV_USE_LINUX_FBDEV
 #error no framebuffer driver
 #endif
