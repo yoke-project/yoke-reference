@@ -8,7 +8,8 @@ manifest_url="${YOKE_MANIFEST:-https://raw.githubusercontent.com/yoke-project/yo
 id=yoke-reference:station.01
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-fail() { echo "FAIL  $id — $*"; exit 1; }
+# fail <why>: both cases failed for one reason, before either ran.
+fail() { echo "FAIL  $id — $*"; echo "FAIL  yoke-reference:station.02 — $*"; exit 1; }
 
 # The composer of the newest programs release, as anyone obtains it: through the public module proxy.
 curl -fsSL "$manifest_url" -o "$work/manifest.jsonl" || fail "the release manifest cannot be obtained"
@@ -83,8 +84,38 @@ check_both_versions_are_written_refused_nothing_and_built() {
   done
 }
 
+# std: yoke-reference:station.02
+check_the_devices_form_is_written_refused_nothing_and_built() {
+  local dir="$work/device" out
+  [[ -f "$root/applications/station/compose-device.sh" ]] || { echo "no compose-device.sh"; return 1; }
+  bash "$root/applications/station/compose-device.sh" "$work/bin/yoke-compose" "$dir" "$(uname -m)" "$work/acquire" "$work/panel" \
+    2> "$work/compose-device.log" || { echo "a verb was refused: $(tail -2 "$work/compose-device.log")"; return 1; }
+  out="$("$work/bin/yoke-compose" check --dir "$dir")" || { echo "check refused: $out"; return 1; }
+  [[ "$out" != *refusal* ]] || { echo "check said $out"; return 1; }
+  mkdir -p "$work/out-device" && "$work/bin/yoke-compose" build --dir "$dir" --out "$work/out-device" > /dev/null || { echo "build refused"; return 1; }
+  [[ "$(ls "$work/out-device" | wc -l)" == 1 ]] || { echo "build wrote $(ls "$work/out-device")"; return 1; }
+  "$work/tojson" < "$dir/yoke.yaml" > "$dir/yoke.json" || { echo "the descriptor does not read"; return 1; }
+  out="$(jq -r '
+    [ (if .id != "com.yoke.station.device" then "the id is \(.id)" else empty end),
+      (if (.units | keys) != ["acquire","panel"] then "the units are \(.units | keys)" else empty end),
+      (if .units.panel.depends_on != ["acquire"] then "panel depends on \(.units.panel.depends_on)" else empty end),
+      (if .units.panel.needs != ["device:framebuffer"] or .units.panel.bind.framebuffer != "/dev/fb0" then "panel binds \(.units.panel.needs) \(.units.panel.bind)" else empty end),
+      (if .units.panel.env.PANEL_DISPLAY != "fbdev:/dev/fb0" then "panel draws to \(.units.panel.env.PANEL_DISPLAY)" else empty end),
+      (if (.parameters | map_values(keys)) != {"shared":["site_label"],"acquire":["instrument"]} then "the parameters are \(.parameters | map_values(keys))" else empty end),
+      (if (.channels | keys) != ["panel"] then "the channels are \(.channels | keys)" else empty end)
+    ] | join("; ")' "$dir/yoke.json")"
+  [[ -z "$out" ]] || { echo "$out"; return 1; }
+}
+
+status=0
 if out="$(check_both_versions_are_written_refused_nothing_and_built 2>&1)"; then
   echo "pass  $id"
 else
-  fail "$out"
+  echo "FAIL  $id — $out"; status=1
 fi
+if out="$(check_the_devices_form_is_written_refused_nothing_and_built 2>&1)"; then
+  echo "pass  yoke-reference:station.02"
+else
+  echo "FAIL  yoke-reference:station.02 — $out"; status=1
+fi
+exit "$status"
