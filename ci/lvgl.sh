@@ -13,7 +13,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 manifest_url="${YOKE_MANIFEST:-https://raw.githubusercontent.com/yoke-project/yoke/main/releases/manifest.jsonl}"
 downloads=https://github.com
 l3=yoke-reference:the-lvgl-panel.06
-l1=(yoke-reference:the-lvgl-panel.01 yoke-reference:the-lvgl-panel.02 yoke-reference:the-lvgl-panel.03 yoke-reference:the-lvgl-panel.04 yoke-reference:the-lvgl-panel.05 yoke-reference:the-lvgl-panel.07 yoke-reference:the-lvgl-panel.08)
+l1=(yoke-reference:the-lvgl-panel.01 yoke-reference:the-lvgl-panel.02 yoke-reference:the-lvgl-panel.03 yoke-reference:the-lvgl-panel.04 yoke-reference:the-lvgl-panel.05 yoke-reference:the-lvgl-panel.07 yoke-reference:the-lvgl-panel.08 yoke-reference:the-lvgl-panel.09)
 
 work="$(mktemp -d)"
 run="$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/yr.XXXX")"
@@ -95,8 +95,27 @@ check_the_panel_is_refused_with_no_lvgl_and_no_download() {
   grep -A3 'CMake Error' "$refused.log" | grep -q 'LVGL' || { echo "the refusal does not name LVGL: $(grep -m1 -A2 'CMake Error' "$refused.log")"; return 1; }
 }
 
+# std: yoke-reference:the-lvgl-panel.09
+check_the_panel_is_refused_when_lvgls_headers_do_not_compile() {
+  local broken="$work/lvgl-broken" refused="$work/panel-broken"
+  mkdir -p "$broken/include/lvgl" "$broken/lib/pkgconfig"
+  printf '#include <a_header_that_is_nowhere.h>\n' > "$broken/include/lvgl/lvgl.h"
+  printf 'prefix=%s\nincludedir=${prefix}/include/lvgl\nlibdir=${prefix}/lib\n\nName: lvgl\nDescription: a broken LVGL\nVersion: 9.4.0\nCflags: -I${includedir}\nLibs: -L${libdir} -llvgl\n' \
+    "$broken" > "$broken/lib/pkgconfig/lvgl.pc"
+  if PKG_CONFIG_PATH="$broken/lib/pkgconfig" cmake -S "$root/clients/lvgl/panel" -B "$refused" -DCMAKE_PREFIX_PATH="$work/prefix" \
+       -DFETCHCONTENT_FULLY_DISCONNECTED=ON > "$refused.log" 2>&1; then
+    echo "the configuration was not refused"; return 1
+  fi
+  local said
+  said="$(grep -A4 'CMake Error' "$refused.log")"
+  grep -qi 'headers do not compile' <<<"$said" || { echo "the refusal does not say LVGL's headers do not compile: $said"; return 1; }
+  grep -qi 'framebuffer' <<<"$said" && { echo "the refusal says the framebuffer driver is missing: $said"; return 1; }
+  return 0
+}
+
 for each in "yoke-reference:the-lvgl-panel.07 check_the_panel_builds_against_an_lvgl_the_build_provides" \
-            "yoke-reference:the-lvgl-panel.08 check_the_panel_is_refused_with_no_lvgl_and_no_download"; do
+            "yoke-reference:the-lvgl-panel.08 check_the_panel_is_refused_with_no_lvgl_and_no_download" \
+            "yoke-reference:the-lvgl-panel.09 check_the_panel_is_refused_when_lvgls_headers_do_not_compile"; do
   read -r id fn <<<"$each"
   if out="$("$fn" 2>&1)"; then say "$id" ""; else say "$id" "$out"; fi
 done
