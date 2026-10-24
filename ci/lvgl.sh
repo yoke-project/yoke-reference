@@ -68,7 +68,7 @@ check_the_panel_builds_against_an_lvgl_the_build_provides() {
   local lvgl="$work/lvgl" built
   mkdir -p "$lvgl/conf" && cp "$root/clients/lvgl/panel/lv_conf.h" "$lvgl/conf/"
   obtain https://github.com/lvgl/lvgl/archive/refs/tags/v9.6.0.tar.gz "$lvgl/lvgl.tar.gz" \
-    "sha256:$(sed -nE 's/.*URL_HASH SHA256=([0-9a-f]{64}).*/\1/p' "$root/clients/lvgl/panel/CMakeLists.txt")" \
+    "sha256:$(sed -nE 's/.*SHA256=([0-9a-f]{64}).*/\1/p' "$root/clients/lvgl/panel/CMakeLists.txt")" \
     || { echo "LVGL's release is not the file the panel pins"; return 1; }
   mkdir -p "$lvgl/src" && tar -xzf "$lvgl/lvgl.tar.gz" -C "$lvgl/src" --strip-components=1
   { cmake -S "$lvgl/src" -B "$lvgl/build" -DLV_BUILD_CONF_DIR="$lvgl/conf" -DBUILD_SHARED_LIBS=ON \
