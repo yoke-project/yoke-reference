@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # The example application written by compose.sh with the newest published composer, checked and built at
-# both its versions. Prints one line per case, as checks/run.sh does, and exits non-zero if it failed.
+# both its versions; and as a device runs it alone, written by compose-device.sh. Prints one line per case,
+# as checks/run.sh does, and exits non-zero if any failed.
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 manifest_url="${YOKE_MANIFEST:-https://raw.githubusercontent.com/yoke-project/yoke/main/releases/manifest.jsonl}"
-id=yoke-reference:station.01
+ids=(yoke-reference:station.01 yoke-reference:station.02)
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
-fail() { echo "FAIL  $id — $*"; exit 1; }
+fail() { for id in "${ids[@]}"; do echo "FAIL  $id — $*"; done; exit 1; }
 
 # The composer of the newest programs release, as anyone obtains it: through the public module proxy.
 curl -fsSL "$manifest_url" -o "$work/manifest.jsonl" || fail "the release manifest cannot be obtained"
@@ -83,8 +84,37 @@ check_both_versions_are_written_refused_nothing_and_built() {
   done
 }
 
-if out="$(check_both_versions_are_written_refused_nothing_and_built 2>&1)"; then
-  echo "pass  $id"
-else
-  fail "$out"
-fi
+# std: yoke-reference:station.02
+check_the_device_application_is_written_refused_nothing_and_built() {
+  local dir="$work/device" out
+  bash "$root/applications/station/compose-device.sh" "$work/bin/yoke-compose" "$dir" "$(uname -m)" \
+    "$work/acquire" "$work/panel" 2> "$work/compose-device.log" \
+    || { echo "a verb was refused: $(tail -2 "$work/compose-device.log")"; return 1; }
+  out="$("$work/bin/yoke-compose" check --dir "$dir")" || { echo "check refused: $out"; return 1; }
+  [[ "$out" != *refusal* ]] || { echo "check said $out"; return 1; }
+  mkdir -p "$work/out-device" && "$work/bin/yoke-compose" build --dir "$dir" --out "$work/out-device" > /dev/null \
+    || { echo "build refused"; return 1; }
+  [[ "$(ls "$work/out-device" | wc -l)" == 1 ]] || { echo "build wrote $(ls "$work/out-device")"; return 1; }
+  "$work/tojson" < "$dir/yoke.yaml" > "$dir/yoke.json" || { echo "the descriptor does not read"; return 1; }
+  out="$(jq -r '
+    [ (if .id != "com.yoke.station.device" then "the application is \(.id)" else empty end),
+      (if (.units | keys) != ["acquire","panel"] then "the units are \(.units | keys)" else empty end),
+      (.units | to_entries[] | select(.value.image != null) | "\(.key) runs in a container"),
+      (if .units.acquire.kind != "plugin" then "acquire is a \(.units.acquire.kind)" else empty end),
+      (if .units.panel.kind != "interface" then "panel is a \(.units.panel.kind)" else empty end),
+      (if .units.panel.depends_on != ["acquire"] then "panel depends on \(.units.panel.depends_on)" else empty end),
+      (if .units.panel.needs != ["device:framebuffer"] then "panel needs \(.units.panel.needs)" else empty end),
+      (if (.parameters | map_values(keys)) != {"shared":["site_label"],"acquire":["instrument"]}
+         then "the parameters are \(.parameters | map_values(keys))" else empty end),
+      (if (.channels | keys) != ["panel"] then "the channels are \(.channels | keys)" else empty end)
+    ] | join("; ")' "$dir/yoke.json")"
+  [[ -z "$out" ]] || { echo "$out"; return 1; }
+}
+
+status=0
+for each in "yoke-reference:station.01 check_both_versions_are_written_refused_nothing_and_built" \
+            "yoke-reference:station.02 check_the_device_application_is_written_refused_nothing_and_built"; do
+  read -r id fn <<<"$each"
+  if out="$("$fn" 2>&1)"; then echo "pass  $id"; else echo "FAIL  $id — $out"; status=1; fi
+done
+exit "$status"
