@@ -1,0 +1,29 @@
+# com.yoke.station.device in the service form: the composition document an administrator installs in
+# /etc/yoke/deployments/ and links /etc/yoke/deployment.yaml to. It names what compose-device.sh's
+# descriptor names, with no head and no parameters: a site's values are written here, by the site.
+#
+# The Plugin's Manifest and executable come from the distribution's packages:
+#   /etc/yoke/plugins.d/com.yoke.station.acquire/manifest.yaml
+#   /usr/lib/yoke/plugins/com.yoke.station.acquire
+# and the panel's executable from /usr/lib/yoke/interfaces/station-panel.
+
+units:
+  acquire:
+    kind: plugin
+    plugin: com.yoke.station.acquire
+    # The spectrometer at the stable name the host gives it.
+    bind: { instrument: /dev/spectro }
+    args: ["--device", "${bind.instrument}", "--label", "Bench A"]
+
+  panel:
+    kind: interface
+    exec: /usr/lib/yoke/interfaces/station-panel
+    depends_on: [acquire]
+    needs: [device:framebuffer]
+    bind: { framebuffer: /dev/fb0 }
+    env:
+      PANEL_DISPLAY: fbdev:/dev/fb0
+      STATION_LABEL: Bench A
+
+channels:
+  panel: { unit: panel, transport: local, clients: single }

@@ -2,8 +2,8 @@
 
 | | |
 | --- | --- |
-| **Feature** | the example application at its two versions, 2.1.0 and 2.2.0, written by `compose.sh` with the newest published composer's verbs and nothing typed by hand: the units, the kinds, the order, the parameters in their groups, the two channels and the one arbitration the worked example declares, and in 2.2.0 the migration unit and the data range; the gate refusing nothing in either, and each built into a package; and `com.yoke.station.device`, the example as a device runs it alone, written by `compose-device.sh` the same way — its host units and no container |
-| **Planning item** | yoke-project/yoke-reference#31 · yoke-project/yoke-reference#68 |
+| **Feature** | the example application at its two versions, 2.1.0 and 2.2.0, written by `compose.sh` with the newest published composer's verbs and nothing typed by hand: the units, the kinds, the order, the parameters in their groups, the two channels and the one arbitration the worked example declares, and in 2.2.0 the migration unit and the data range; the gate refusing nothing in either, and each built into a package; and `com.yoke.station.device`, the example as a device runs it alone, written by `compose-device.sh` the same way — its host units and no container; and the same device in the service form, the composition document an administrator takes, naming what the descriptor names |
+| **Planning item** | yoke-project/yoke-reference#31 · yoke-project/yoke-reference#68 · yoke-project/yoke-reference#70 |
 
 ## yoke-reference:station.01 — both versions are written by the composer's verbs, refused nothing, and built
 
@@ -30,3 +30,17 @@
 | **Precondition** | the composer and the two host executables of `.01`; `acquire`'s Manifest from this tree |
 | **Action** | run `compose-device.sh` for the build host's architecture; `yoke-compose check` and `yoke-compose build` |
 | **Expected** | every verb exits 0; `check` refuses nothing; the build writes one package; the descriptor names `com.yoke.station.device` and holds two units, the plugin `acquire` and the interface `panel`, neither in a container, `panel` depending on `acquire` and needing the device `framebuffer`; the parameters `shared.site_label` and `acquire.instrument`; and the one channel `panel` — what a host with no container engine runs |
+
+## yoke-reference:station.03 — the device in the service form names what the descriptor names, with no head and no parameter
+
+| Field | Value |
+| --- | --- |
+| **Cites** | arch/15-gate/04 §At a glance · arch/00-system/02 §The service form on disk · arch/97-trace/07 §The composition document |
+| **Level** | L1 |
+| **Method** | test |
+| **Not applicable in** | — |
+| **Label** | blocking |
+| **Precondition** | the descriptor `.02` writes; `applications/station/device.composition.yaml` from this tree |
+| **Action** | read the composition document beside the descriptor |
+| **Expected** | it carries none of the descriptor's head — `model`, `id`, `version`, `arch`, `core`, `data` — and no `parameters`, and refers to no parameter; it names the same units with the same kinds, the same Plugin, the same order and the same needs, and the same channel on the same unit; `acquire` names no executable, since the Core resolves it from the Plugin's identity, and `panel` runs one under `/usr/lib/yoke/interfaces/` — what an administrator installs in `/etc/yoke/deployments/` to run the device as a service |
+
