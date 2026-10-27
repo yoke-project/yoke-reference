@@ -6,7 +6,7 @@ set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 manifest_url="${YOKE_MANIFEST:-https://raw.githubusercontent.com/yoke-project/yoke/main/releases/manifest.jsonl}"
-ids=(yoke-reference:station.01 yoke-reference:station.02)
+ids=(yoke-reference:station.01 yoke-reference:station.02 yoke-reference:station.03)
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 fail() { for id in "${ids[@]}"; do echo "FAIL  $id — $*"; done; exit 1; }
@@ -111,9 +111,38 @@ check_the_device_application_is_written_refused_nothing_and_built() {
   [[ -z "$out" ]] || { echo "$out"; return 1; }
 }
 
+# std: yoke-reference:station.03
+check_the_device_in_the_service_form_names_what_the_descriptor_names() {
+  local composition="$root/applications/station/device.composition.yaml" out
+  [[ -f "$composition" ]] || { echo "no applications/station/device.composition.yaml"; return 1; }
+  [[ -f "$work/device/yoke.json" ]] || { echo "the descriptor of station.02 was not written"; return 1; }
+  "$work/tojson" < "$composition" > "$work/composition.json" || { echo "the composition does not read"; return 1; }
+  out="$(jq -r --slurpfile d "$work/device/yoke.json" '
+    ($d[0]) as $d |
+    [ (["model","id","version","arch","core","data","parameters"][] as $k | select(has($k)) | "it carries \($k)"),
+      (if (.units | keys) != ($d.units | keys) then "the units are \(.units | keys)" else empty end),
+      (.units | to_entries[] | . as $u | $d.units[$u.key] as $w | select($w != null)
+        | (if $u.value.kind != $w.kind then "\($u.key) is a \($u.value.kind)" else empty end),
+          (if $u.value.plugin != $w.plugin then "\($u.key) names the Plugin \($u.value.plugin)" else empty end),
+          (if ($u.value.depends_on // []) != ($w.depends_on // []) then "\($u.key) depends on \($u.value.depends_on)" else empty end),
+          (if ($u.value.needs // []) != ($w.needs // []) then "\($u.key) needs \($u.value.needs)" else empty end)),
+      (if .units.acquire.exec != null then "acquire names the executable \(.units.acquire.exec)" else empty end),
+      (if (.units.panel.exec // "" | startswith("/usr/lib/yoke/interfaces/")) | not then "panel runs \(.units.panel.exec)" else empty end),
+      (if (.channels | keys) != ($d.channels | keys) then "the channels are \(.channels | keys)" else empty end),
+      (.channels | to_entries[] | . as $c | $d.channels[$c.key] as $w | select($w != null)
+        | select([$c.value.unit, $c.value.transport, $c.value.clients] != [$w.unit, $w.transport, $w.clients])
+        | "the channel \($c.key) is \($c.value)")
+    ] | join("; ")' "$work/composition.json")"
+  [[ -z "$out" ]] || { echo "$out"; return 1; }
+  # A composition has no parameters, so nothing may still refer to one: only the unit's own bindings remain.
+  grep -oE '\$\{[^}]+\}' "$composition" | grep -vE '^\$\{bind\.' && { echo "it refers to a parameter"; return 1; }
+  return 0
+}
+
 status=0
 for each in "yoke-reference:station.01 check_both_versions_are_written_refused_nothing_and_built" \
-            "yoke-reference:station.02 check_the_device_application_is_written_refused_nothing_and_built"; do
+            "yoke-reference:station.02 check_the_device_application_is_written_refused_nothing_and_built" \
+            "yoke-reference:station.03 check_the_device_in_the_service_form_names_what_the_descriptor_names"; do
   read -r id fn <<<"$each"
   if out="$("$fn" 2>&1)"; then echo "pass  $id"; else echo "FAIL  $id — $out"; status=1; fi
 done
