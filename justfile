@@ -57,6 +57,8 @@ test:
     bash ci/lvgl.sh | tee .results/lvgl.txt; (( PIPESTATUS[0] == 0 )) || status=1
     # L3: the terminal clients in Rust and Python attach to a channel of the published Core beside the Go clock.
     bash ci/terminal.sh "{{venvs}}/clients-python-terminal/bin/python" | tee .results/terminal.txt; (( PIPESTATUS[0] == 0 )) || status=1
+    # L3: the desktop bench, written by its compose.sh, under the published Core with bench.qml beside it.
+    bash ci/desktop.sh | tee .results/desktop.txt; (( PIPESTATUS[0] == 0 )) || status=1
     # The example application written with the published composer.
     bash ci/station-project.sh | tee .results/station-project.txt; (( PIPESTATUS[0] == 0 )) || status=1
     # L3: pipeline's image run by Podman under the published Core, on this host.
