@@ -10,7 +10,7 @@
 set -euo pipefail
 
 compose="$1" dir="$2" arch="$3"
-plugin="${4:-https://github.com/yoke-project/yoke-plugin-hw-monitor@v0.2.0}"
+plugin="${4:-https://github.com/yoke-project/yoke-plugin-hw-monitor@v0.3.0}"
 # Each verb is said before it runs, so a refusal names the verb it answers.
 c() { echo "+ $*" >&2; "$compose" "$@" --dir "$dir" > /dev/null; }
 
