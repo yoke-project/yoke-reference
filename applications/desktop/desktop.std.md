@@ -2,7 +2,7 @@
 
 | | |
 | --- | --- |
-| **Feature** | the desktop bench, `com.yoke.reference.desktop`: an application written by `compose.sh` with the composer's verbs alone — the pool's `hw-monitor` taken at its tag, and one local channel, `desktop`, that no unit is launched for — and `bench.qml`, a QML document anyone could have written, started beside the application as a compositor starts a desktop shell, attached to `desktop` with the C++ family's QML binding as published: it asks the snapshot, starts the CPU and memory streams and follows them; it is nobody's shell, and what the release's measurements are taken with |
+| **Feature** | the desktop bench, `com.yoke.reference.desktop`: an application written by `compose.sh` with the composer's verbs alone — the pool's `hw-monitor` taken at its tag, and one local channel, `desktop`, that no unit is launched for — and `bench.qml`, a QML document anyone could have written, started beside the application as a compositor starts a desktop shell, attached to `desktop` with the C++ family's QML binding as published: it subscribes to the CPU and memory streams, starts them, then asks the snapshot, and joins the two by the sequence each value carries; it is nobody's shell, and what the release's measurements are taken with |
 | **Planning item** | yoke-project/yoke-reference#74 |
 
 ## yoke-reference:desktop.01 — the bench is written with the composer's verbs alone
@@ -43,3 +43,16 @@
 | **Precondition** | the run of `.02`, the document still attached |
 | **Action** | start a second document on the same channel; then stop the first, and start another |
 | **Expected** | the second is refused the channel, which takes a single client, and the first keeps following; once the first is stopped the application goes on running, no unit of it having ended, and the next document attaches and follows the streams again |
+
+## yoke-reference:desktop.04 — the document joins the present to what follows it without a gap
+
+| Field | Value |
+| --- | --- |
+| **Cites** | specs/70.51 · arch/70-interface-surface/07 §The present, for a client that subscribes late |
+| **Level** | L3 |
+| **Method** | test |
+| **Not applicable in** | — |
+| **Label** | blocking |
+| **Precondition** | the run of desktop.03: the Core, hw-monitor at 0.3.0 granted and running, and the third document attached, having subscribed to both streams, started them, and asked the snapshot |
+| **Action** | read what the document said for a few seconds |
+| **Expected** | for each stream it joined at the sequence the snapshot stated, and the values it applied after go on from the next one, one by one, with no gap said |

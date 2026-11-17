@@ -12,7 +12,7 @@ set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 manifest_url="${YOKE_MANIFEST:-https://raw.githubusercontent.com/yoke-project/yoke/main/releases/manifest.jsonl}"
 downloads=https://github.com
-ids=(yoke-reference:desktop.01 yoke-reference:desktop.02 yoke-reference:desktop.03)
+ids=(yoke-reference:desktop.01 yoke-reference:desktop.02 yoke-reference:desktop.03 yoke-reference:desktop.04)
 
 work="$(mktemp -d)"
 run="$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/yr.XXXX")"
@@ -152,10 +152,29 @@ check_the_document_is_started_beside_the_application() {
   [[ -z "$why" ]] || { echo "${why# }"; return 1; }
 }
 
+# std: yoke-reference:desktop.04
+check_the_document_joins_the_present_without_a_gap() {
+  [[ -n "$core" && ${#documents[@]} == 1 ]] || { echo "the run of .03 is not there to continue"; return 1; }
+  local doc="$work/third.log" why="" s at values
+  until_logged 'bench: value hw.memory [0-9]+' "$doc" 30 || true
+  sleep 3
+  for s in hw.cpu hw.memory; do
+    at="$(sed -n "s/.*bench: joined $s at \([0-9][0-9]*\),.*/\1/p" "$doc" | head -1)"
+    [[ -n "$at" ]] || { why+=" it never joined $s to the snapshot;"; continue; }
+    values="$(sed -n "s/.*bench: value $s \([0-9][0-9]*\)$/\1/p" "$doc")"
+    (( $(wc -l <<<"$values") >= 3 )) || { why+=" $s brought fewer than three values after the snapshot;"; continue; }
+    [[ "$(head -1 <<<"$values")" == "$((at + 1))" ]] || why+=" $s went on at $(head -1 <<<"$values"), not at $((at + 1)) after the snapshot's $at;"
+    awk 'NR > 1 && $1 != prev + 1 { bad = 1 } { prev = $1 } END { exit bad }' <<<"$values" || why+=" $s skipped a value;"
+  done
+  grep -q 'bench: gap ' "$doc" && why+=" it said: $(grep -m1 'bench: gap ' "$doc");"
+  [[ -z "$why" ]] || { echo "${why# }"; grep -E 'bench: (joined|value|snapshot)' "$doc" | head -12; return 1; }
+}
+
 status=0
 for pair in "${ids[0]} check_the_bench_is_written_with_the_verbs_alone" \
   "${ids[1]} check_the_document_sees_the_snapshot_and_follows_the_streams" \
-  "${ids[2]} check_the_document_is_started_beside_the_application"; do
+  "${ids[2]} check_the_document_is_started_beside_the_application" \
+  "${ids[3]} check_the_document_joins_the_present_without_a_gap"; do
   read -r id fn <<<"$pair"
   # Not in a subshell: the Core and the document of one case are what the next continues.
   if $fn > "$work/out" 2>&1; then
