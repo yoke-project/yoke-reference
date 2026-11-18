@@ -114,7 +114,7 @@ fn said(acts: &[Act]) -> String {
 
 // std: yoke-reference:ask.01
 #[test]
-fn the_manifest_is_the_one_the_declaration_generates() {
+fn the_manifest_of_ask_is_the_one_its_declaration_generates() {
     let committed = std::fs::read_to_string(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/com.yoke.reference.ask.yaml"
