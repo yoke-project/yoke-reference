@@ -1,0 +1,14 @@
+# The desktop bench's second Plugin: one that must ask the person at the interface for something before it
+# can go on. Built from the published crate alone, as anyone's Plugin is.
+[package]
+name = "ask"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.88"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+yoke-sdk = "=0.8.0"
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time"] }
