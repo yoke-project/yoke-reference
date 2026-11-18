@@ -1,0 +1,9 @@
+plugin: 1
+id: com.yoke.reference.ask
+language: rust
+program: ask
+manifest: com.yoke.reference.ask.yaml
+build:
+  in: .
+  run: cargo build --release --locked --target "$YOKE_RUST_TARGET" && cp "target/$YOKE_RUST_TARGET/release/ask" "$YOKE_OUT/ask"
+architectures: [x86_64, aarch64]

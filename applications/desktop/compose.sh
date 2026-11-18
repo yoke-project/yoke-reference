@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Writes the desktop bench, com.yoke.reference.desktop, with the composer's verbs alone: the pool's
-# hw-monitor, taken at its tag, and one local channel, `desktop`, that no unit is launched for. A desktop
+# hw-monitor, taken at its tag; ask, the bench's own Plugin that must ask the person something, taken from
+# the directory beside this script; and one local channel, `desktop`, that no unit is launched for. A desktop
 # shell, or bench.qml, is attached to it from outside, started beside the application as a compositor
 # starts its shell.
 #
@@ -10,11 +11,13 @@
 set -euo pipefail
 
 compose="$1" dir="$2" arch="$3"
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 plugin="${4:-https://github.com/yoke-project/yoke-plugin-hw-monitor@v0.3.0}"
 # Each verb is said before it runs, so a refusal names the verb it answers.
 c() { echo "+ $*" >&2; "$compose" "$@" --dir "$dir" > /dev/null; }
 
 c init com.yoke.reference.desktop --version 1.0.0 --arch "$arch" --core ">=0.15.0"
 c add plugin "$plugin" --as hw-monitor --yes
+c add plugin "$here/ask" --as ask --yes
 c add channel desktop --transport local --clients single
 c check

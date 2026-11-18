@@ -1,0 +1,31 @@
+manifest: 1
+id: com.yoke.reference.ask
+protocol: 1
+commands:
+  - id: ask.join
+  - id: ask.answer
+  - id: ask.withdraw
+queries:
+  - id: ask.pending
+occurrences:
+  - id: ask.needed
+  - id: ask.settled
+capabilities:
+  - name: command.join.accept
+    governs:
+      command: ask.join
+  - name: command.answer.accept
+    governs:
+      command: ask.answer
+  - name: command.withdraw.accept
+    governs:
+      command: ask.withdraw
+  - name: query.pending.answer
+    governs:
+      query: ask.pending
+  - name: event.needed.report
+    governs:
+      occurrence: ask.needed
+  - name: event.settled.report
+    governs:
+      occurrence: ask.settled

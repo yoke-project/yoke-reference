@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs the desktop bench by hand: writes it with compose.sh where it is not written, runs it on a local
-# Core, grants hw-monitor what its Manifest declares, and starts bench.qml beside it, as a compositor
+# Core, grants hw-monitor and ask what their Manifests declare, and starts bench.qml beside it, as a compositor
 # starts a shell. Closing the document's window, or an interrupt, stops everything.
 #
 # Usage: run.sh <QML import path>
@@ -27,9 +27,12 @@ instance="$(sed -n '1s/ runs .*//p' "$log")"
 export YOKE_INSTANCE="$instance"
 
 # A run's instance starts with nothing granted; a grant reaches the unit at its next admission.
-for capability in $(sed -n 's/^  - name: //p' "$dir/manifests/com.yoke.hw-monitor.yaml"); do
-  yoke plugin grant com.yoke.hw-monitor "$capability" > /dev/null
+for pair in com.yoke.hw-monitor:hw-monitor com.yoke.reference.ask:ask; do
+  for capability in $(sed -n 's/^  - name: //p' "$dir/manifests/${pair%%:*}.yaml"); do
+    yoke plugin grant "${pair%%:*}" "$capability" > /dev/null
+  done
+  yoke unit restart "${pair#*:}" > /dev/null
 done
-yoke unit restart hw-monitor > /dev/null
 echo "run.sh: $instance runs; bench.qml attaches to its channel desktop"
+echo "run.sh: to have ask ask something: echo '{\"network\":\"home\"}' | yoke unit command ask ask.join --input - --instance $instance"
 "$qml" -I "$imports" "$here/bench.qml" -- --instance "$instance" --channel desktop

@@ -12,7 +12,8 @@ set -uo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 manifest_url="${YOKE_MANIFEST:-https://raw.githubusercontent.com/yoke-project/yoke/main/releases/manifest.jsonl}"
 downloads=https://github.com
-ids=(yoke-reference:desktop.01 yoke-reference:desktop.02 yoke-reference:desktop.03 yoke-reference:desktop.04)
+ids=(yoke-reference:desktop.01 yoke-reference:desktop.02 yoke-reference:desktop.03 yoke-reference:desktop.04
+  yoke-reference:desktop.05 yoke-reference:desktop.06)
 
 work="$(mktemp -d)"
 run="$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/yr.XXXX")"
@@ -75,12 +76,26 @@ until_logged() {
   until grep -qE "$1" "$2" || (( waited >= $3 * 10 )); do sleep 0.1; ((waited++)); done
   grep -qE "$1" "$2"
 }
-# document <file>: bench.qml started beside the application, its standard error into file; its pid in
-# `documents`.
+# document <file> [<argument>...]: bench.qml started beside the application, its standard error into
+# file; its pid in `documents`.
 document() {
+  local out="$1"; shift
   QT_QPA_PLATFORM=offscreen LANG=C.UTF-8 "$qml" -I "$imports" "$root/applications/desktop/bench.qml" \
-    -- --instance bench-a --channel desktop > "$1" 2>&1 &
+    -- --instance bench-a --channel desktop "$@" > "$out" 2>&1 &
   documents+=("$!")
+}
+# What a case gives the document in place of a person, and looks for where the Core keeps what it keeps.
+secret="bench-passphrase-$$-$RANDOM"
+# join <network>: ask is told, over the operator's surface, to join a network, which needs a passphrase.
+join() { printf '{"network":"%s"}' "$1" | yoke unit command ask ask.join --input - > /dev/null; }
+# unseen <case's log>...: the passphrase is in none of the Core's output, its state, the log store as
+# `yoke log query` shows it, nor what the document said.
+unseen() {
+  local where=""
+  yoke log query --unit ask > "$work/ask.log" 2>&1
+  for f in "$log" "$work/ask.log" "$@"; do grep -qaF "$secret" "$f" && where+=" $(basename "$f")"; done
+  grep -rqaF "$secret" "$XDG_STATE_HOME" && where+=" the state directory"
+  [[ -z "$where" ]] || echo " the passphrase is in:$where;"
 }
 # follows <file>: the document said it attached, was answered the snapshot, and followed both streams.
 follows() {
@@ -106,6 +121,8 @@ check_the_bench_is_written_with_the_verbs_alone() {
   local why=""
   grep -qE '^  hw-monitor:$' "$bench/yoke.yaml" && grep -qE '^    plugin: com\.yoke\.hw-monitor$' "$bench/yoke.yaml" \
     || why+=" the unit hw-monitor of com.yoke.hw-monitor is not there;"
+  grep -qE '^  ask:$' "$bench/yoke.yaml" && grep -qE '^    plugin: com\.yoke\.reference\.ask$' "$bench/yoke.yaml" \
+    || why+=" the unit ask of com.yoke.reference.ask is not there;"
   grep -qE '^    tag: v[0-9]' "$bench/plugins.yaml" || why+=" the Plugin is not recorded at a tag;"
   sed -n '/^channels:/,$p' "$bench/yoke.yaml" > "$work/channels"
   grep -qE '^  desktop:$' "$work/channels" && grep -qE 'transport: local' "$work/channels" && grep -qE 'clients: single' "$work/channels" \
@@ -126,6 +143,12 @@ check_the_document_sees_the_snapshot_and_follows_the_streams() {
   done
   yoke unit restart hw-monitor > /dev/null || { echo "hw-monitor could not be restarted"; return 1; }
   until_logged 'subject=unit:hw-monitor#2 .*to=Running' "$log" 60 || { echo "hw-monitor did not run again"; return 1; }
+  # ask, the bench's own Plugin, is granted what it declares as well, for .05 and .06.
+  for c in $(sed -n 's/^  - name: //p' "$bench/manifests/com.yoke.reference.ask.yaml"); do
+    yoke plugin grant com.yoke.reference.ask "$c" > /dev/null || { echo "$c could not be granted to ask"; return 1; }
+  done
+  yoke unit restart ask > /dev/null || { echo "ask could not be restarted"; return 1; }
+  until_logged 'subject=unit:ask#2 .*to=Running' "$log" 60 || { echo "ask did not run again"; return 1; }
   document "$work/first.log"
   follows "$work/first.log"
 }
@@ -170,11 +193,47 @@ check_the_document_joins_the_present_without_a_gap() {
   [[ -z "$why" ]] || { echo "${why# }"; grep -E 'bench: (joined|value|snapshot)' "$doc" | head -12; return 1; }
 }
 
+# std: yoke-reference:desktop.05
+check_the_document_answers_what_a_plugin_asks() {
+  [[ -n "$core" && ${#documents[@]} == 1 ]] || { echo "the run of .04 is not there to continue"; return 1; }
+  stop_documents
+  local doc="$work/fourth.log" why=""
+  document "$doc" --answer "$secret"
+  until_logged 'bench: joined asks at 0, 0 held dropped' "$doc" 30 || { echo "the document did not join ask's present"; tail -8 "$doc"; return 1; }
+  join bench || { echo "ask.join was refused"; return 1; }
+  until_logged 'bench: settled a1 ' "$doc" 30 || true
+  grep -qE 'bench: asked a1 for bench \(sequence 1\)' "$doc" || why+=" the document was not told of the ask;"
+  grep -qE 'bench: a1 answer OUTCOME_DONE' "$doc" || why+=" its answer was not acknowledged done;"
+  grep -qE 'bench: settled a1 accepted \(sequence 2\)' "$doc" || why+=" the ask was not settled as accepted;"
+  why+="$(unseen "$doc")"
+  [[ -z "$why" ]] || { echo "${why# }"; grep -E 'bench: (joined asks|asked|answering|a1|settled)' "$doc"; return 1; }
+}
+
+# std: yoke-reference:desktop.06
+check_a_document_that_comes_after_the_ask_answers_it() {
+  [[ -n "$core" && ${#documents[@]} == 1 ]] || { echo "the run of .05 is not there to continue"; return 1; }
+  stop_documents
+  local doc="$work/fifth.log" why=""
+  join late || { echo "ask.join was refused"; return 1; }
+  sleep 1
+  document "$doc" --answer "$secret"
+  until_logged 'bench: settled a2 ' "$doc" 30 || true
+  grep -qE 'bench: joined asks at 3, ' "$doc" || why+=" the document did not join ask's present at its sequence 3;"
+  grep -qE 'bench: asked a2 for late \(sequence 3\)' "$doc" || why+=" the present did not tell it of the ask;"
+  grep -qE 'bench: asked a1 ' "$doc" && why+=" it was told again of an ask already settled;"
+  grep -qE 'bench: a2 answer OUTCOME_DONE' "$doc" || why+=" its answer was not acknowledged done;"
+  grep -qE 'bench: settled a2 accepted \(sequence 4\)' "$doc" || why+=" the ask was not settled as accepted;"
+  why+="$(unseen "$doc" "$work/fourth.log")"
+  [[ -z "$why" ]] || { echo "${why# }"; grep -E 'bench: (joined asks|asked|answering|a2|settled)' "$doc"; return 1; }
+}
+
 status=0
 for pair in "${ids[0]} check_the_bench_is_written_with_the_verbs_alone" \
   "${ids[1]} check_the_document_sees_the_snapshot_and_follows_the_streams" \
   "${ids[2]} check_the_document_is_started_beside_the_application" \
-  "${ids[3]} check_the_document_joins_the_present_without_a_gap"; do
+  "${ids[3]} check_the_document_joins_the_present_without_a_gap" \
+  "${ids[4]} check_the_document_answers_what_a_plugin_asks" \
+  "${ids[5]} check_a_document_that_comes_after_the_ask_answers_it"; do
   read -r id fn <<<"$pair"
   # Not in a subshell: the Core and the document of one case are what the next continues.
   if $fn > "$work/out" 2>&1; then
