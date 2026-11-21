@@ -1,0 +1,18 @@
+# A link of the chain: it answers chain.ask by asking the unit its need next is bound to, and follows that unit's chain.ticks.
+[package]
+name = "link"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.88"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+# The library at the commit that carries a unit need, until the release that publishes it.
+yoke-sdk = { git = "https://github.com/yoke-project/yoke-sdk-rust", rev = "2dbe67f" }
+yoke-proto = "=0.7.0"
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "sync"] }
+
+# A program of its own, never a member of a workspace around it.
+[workspace]

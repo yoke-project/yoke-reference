@@ -1,0 +1,33 @@
+manifest: 1
+id: com.yoke.reference.chain.link
+protocol: 1
+needs:
+  - unit:next
+streams:
+  - id: chain.ticks
+    tolerates_loss: true
+queries:
+  - id: chain.ask
+uses:
+  next:
+    questions:
+      - chain.ask
+    streams:
+      - chain.ticks
+capabilities:
+  - name: query.chain.ask.answer
+    governs:
+      query: chain.ask
+  - name: stream.chain.ticks.publish
+    governs:
+      stream: chain.ticks
+  - name: query.chain.ask.ask
+    governs:
+      use:
+        need: next
+        query: chain.ask
+  - name: stream.chain.ticks.follow
+    governs:
+      use:
+        need: next
+        stream: chain.ticks

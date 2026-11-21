@@ -1,0 +1,15 @@
+manifest: 1
+id: com.yoke.reference.chain.end
+protocol: 1
+streams:
+  - id: chain.ticks
+    tolerates_loss: true
+queries:
+  - id: chain.ask
+capabilities:
+  - name: query.chain.ask.answer
+    governs:
+      query: chain.ask
+  - name: stream.chain.ticks.publish
+    governs:
+      stream: chain.ticks
