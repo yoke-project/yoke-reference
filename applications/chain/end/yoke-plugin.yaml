@@ -1,0 +1,9 @@
+plugin: 1
+id: com.yoke.reference.chain.end
+language: rust
+program: end
+manifest: com.yoke.reference.chain.end.yaml
+build:
+  in: .
+  run: cargo build --release --locked --target "$YOKE_RUST_TARGET" && cp "target/$YOKE_RUST_TARGET/release/end" "$YOKE_OUT/end"
+architectures: [x86_64, aarch64]

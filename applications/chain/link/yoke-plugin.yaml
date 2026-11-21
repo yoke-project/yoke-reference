@@ -1,0 +1,9 @@
+plugin: 1
+id: com.yoke.reference.chain.link
+language: rust
+program: link
+manifest: com.yoke.reference.chain.link.yaml
+build:
+  in: .
+  run: cargo build --release --locked --target "$YOKE_RUST_TARGET" && cp "target/$YOKE_RUST_TARGET/release/link" "$YOKE_OUT/link"
+architectures: [x86_64, aarch64]
