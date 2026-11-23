@@ -9,12 +9,12 @@ set(CMAKE_AUTOMOC OFF)
 
 # 0.6 left out the administrative contract, which the panel never used, 0.7 gave the plugin library the
 # shared ring, 0.8 added a Plugin template, 0.9 gave a stream a socket with a length and a client the ring
-# to read, and 0.10 added a QML binding beside the library; what the panel calls of the interface library is
-# the same in the six. The family's version file accepts one minor version alone, so the six are checked
-# here.
+# to read, 0.10 added a QML binding beside the library, 0.11 waited on the ring's wake word with no bound, and
+# 0.12 let a unit use another; what the panel calls of the interface library is the same in the eight. The
+# family's version file accepts one minor version alone, so the eight are checked here.
 find_package(yoke-sdk-cpp REQUIRED)
-if(yoke-sdk-cpp_VERSION VERSION_LESS 0.5 OR NOT yoke-sdk-cpp_VERSION VERSION_LESS 0.11)
-    message(FATAL_ERROR "the panel builds against yoke-sdk-cpp 0.5 to 0.10, and found ${yoke-sdk-cpp_VERSION}")
+if(yoke-sdk-cpp_VERSION VERSION_LESS 0.5 OR NOT yoke-sdk-cpp_VERSION VERSION_LESS 0.13)
+    message(FATAL_ERROR "the panel builds against yoke-sdk-cpp 0.5 to 0.12, and found ${yoke-sdk-cpp_VERSION}")
 endif()
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
