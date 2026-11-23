@@ -895,8 +895,9 @@ dependencies = [
 
 [[package]]
 name = "yoke-sdk"
-version = "0.9.0"
-source = "git+https://github.com/yoke-project/yoke-sdk-rust?rev=2dbe67f#2dbe67fe437553e15ff1bb07801ff690ad96c869"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f33393bff878b4e766ca5cde16ff9a740700097968fad88132229f94a7c95318"
 dependencies = [
  "hyper-util",
  "prost",
